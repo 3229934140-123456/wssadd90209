@@ -59,8 +59,8 @@ const SignaturePage: React.FC = () => {
   } = useAppStore()
 
   useEffect(() => {
-    console.log('[Signature] Initializing with mock data')
-    setInjectionRecords(mockInjectionRecords)
+    const { injectionRecords } = useAppStore.getState()
+    if (injectionRecords.length === 0) setInjectionRecords(mockInjectionRecords)
   }, [setInjectionRecords])
 
   useDidShow(() => {

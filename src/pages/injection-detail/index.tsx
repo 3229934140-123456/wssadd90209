@@ -6,33 +6,37 @@ import styles from './index.module.scss'
 import { useAppStore } from '@/store/useAppStore'
 import { mockInjectionRecords } from '@/data/mockInjections'
 import { formatDate, formatDateTime, getProjectTypeText, getDepthText, getSideText } from '@/utils/date'
-import { FACIAL_POINTS_CONFIG } from '@/types'
+import { FACIAL_POINTS_CONFIG, TimelineNote } from '@/types'
 
 const InjectionDetailPage: React.FC = () => {
   const router = useRouter()
   const recordId = router.params.id as string
   const {
     injectionRecords,
-    setInjectionRecords
+    setInjectionRecords,
+    addTimelineNote
   } = useAppStore()
 
   const [record, setRecord] = useState<any>(null)
   const [activeTab, setActiveTab] = useState<'detail' | 'timeline'>('detail')
 
   useEffect(() => {
-    console.log('[InjectionDetail] Initializing with mock data')
-    setInjectionRecords(mockInjectionRecords)
+    const { injectionRecords } = useAppStore.getState()
+    if (injectionRecords.length === 0) setInjectionRecords(mockInjectionRecords)
   }, [setInjectionRecords])
 
   useDidShow(() => {
-    console.log('[InjectionDetail] Page did show, recordId:', recordId)
-    if (recordId) {
-      const found = injectionRecords.find(r => r.id === recordId) || mockInjectionRecords[0]
-      setRecord(found)
-    } else {
-      setRecord(mockInjectionRecords[0])
-    }
+    const { injectionRecords } = useAppStore.getState()
+    const allRecords = injectionRecords.length > 0 ? injectionRecords : mockInjectionRecords
+    const found = recordId ? (allRecords.find(r => r.id === recordId) || allRecords[0]) : allRecords[0]
+    setRecord(found)
   })
+
+  useEffect(() => {
+    const allRecords = injectionRecords.length > 0 ? injectionRecords : mockInjectionRecords
+    const found = recordId ? (allRecords.find(r => r.id === recordId) || allRecords[0]) : allRecords[0]
+    setRecord(found)
+  }, [injectionRecords, recordId])
 
   if (!record) {
     return (
@@ -63,13 +67,15 @@ const InjectionDetailPage: React.FC = () => {
       icon: string
       title: string
       content: string[]
+      nodeType: TimelineNote['nodeType']
     }> = []
 
     nodes.push({
       time: record.createTime,
       icon: '📋',
       title: '选择项目',
-      content: [`${record.projectName}（${getProjectTypeText(record.projectType)}）`]
+      content: [`${record.projectName}（${getProjectTypeText(record.projectType)}）`],
+      nodeType: 'project'
     })
 
     if (record.points && record.points.length > 0) {
@@ -79,7 +85,8 @@ const InjectionDetailPage: React.FC = () => {
         title: '添加注射点位',
         content: record.points.map((point: any) =>
           `${point.pointName} · ${getSideText(point.side)} · ${getDepthText(point.depth)} · ${point.needleCount}针 × ${point.singleDose}单位 = 总${point.totalDose}`
-        )
+        ),
+        nodeType: 'points'
       })
     }
 
@@ -92,7 +99,8 @@ const InjectionDetailPage: React.FC = () => {
         title: '核验药品',
         content: record.medicines.map((medicine: any) =>
           `${medicine.name} - 批号${medicine.batchNumber} · 用量${medicine.usedDose}${medicine.unit} · ${medicine.verified ? '✓已核验' : '待核验'}`
-        )
+        ),
+        nodeType: 'medicine'
       })
     }
 
@@ -102,7 +110,8 @@ const InjectionDetailPage: React.FC = () => {
           time: photo.createTime,
           icon: '📷',
           title: '拍照标注',
-          content: [`${getPhotoTypeText(photo.type)} · ${photo.markers?.length || 0}个标记点`]
+          content: [`${getPhotoTypeText(photo.type)} · ${photo.markers?.length || 0}个标记点`],
+          nodeType: 'photo'
         })
       })
     }
@@ -112,7 +121,8 @@ const InjectionDetailPage: React.FC = () => {
         time: record.updateTime,
         icon: '⚠️',
         title: '异常备注',
-        content: [record.abnormalNotes]
+        content: [record.abnormalNotes],
+        nodeType: 'abnormal'
       })
     }
 
@@ -121,7 +131,8 @@ const InjectionDetailPage: React.FC = () => {
         time: record.signatureTime || record.updateTime,
         icon: '✍️',
         title: '医生签名确认',
-        content: [`${record.doctorName} 完成签名，记录已锁定`]
+        content: [`${record.doctorName} 完成签名，记录已锁定`],
+        nodeType: 'signature'
       })
     }
 
@@ -135,6 +146,32 @@ const InjectionDetailPage: React.FC = () => {
   }
 
   const timelineNodes = buildTimelineNodes()
+
+  const handleAddNote = (nodeType: TimelineNote['nodeType'], nodeTime: string) => {
+    Taro.showModal({
+      title: '补录步骤备注',
+      editable: true,
+      placeholderText: '请输入备注内容...',
+      success: (res) => {
+        if (res.confirm && res.content && res.content.trim()) {
+          addTimelineNote(record.id, {
+            nodeType,
+            nodeTime,
+            note: res.content.trim(),
+            nurseName: '操作护士'
+          })
+          Taro.showToast({ title: '备注添加成功', icon: 'success' })
+        }
+      }
+    })
+  }
+
+  const getNodeNotes = (nodeType: TimelineNote['nodeType'], nodeTime: string): TimelineNote[] => {
+    if (!record.timelineNotes || !Array.isArray(record.timelineNotes)) return []
+    return record.timelineNotes.filter(
+      (n: TimelineNote) => n.nodeType === nodeType && n.nodeTime === nodeTime
+    )
+  }
 
   const handleExport = () => {
     console.log('[InjectionDetail] Export record:', record.id)
@@ -409,21 +446,43 @@ const InjectionDetailPage: React.FC = () => {
         </>
       ) : (
         <View className={styles.timeline}>
-          {timelineNodes.map((node, index) => (
-            <View key={index} className={styles.timelineNode}>
-              <View className={styles.timelineIcon}>{node.icon}</View>
-              <View className={styles.timelineLine}></View>
-              <View className={styles.timelineContent}>
-                <View className={styles.timelineTime}>{formatDateTime(node.time)}</View>
-                <View className={styles.timelineTitle}>{node.title}</View>
-                <View className={styles.timelineDetail}>
-                  {node.content.map((line, i) => (
-                    <View key={i}>{line}</View>
-                  ))}
+          {timelineNodes.map((node, index) => {
+            const nodeNotes = getNodeNotes(node.nodeType, node.time)
+            return (
+              <View key={index} className={styles.timelineNode}>
+                <View className={styles.timelineIcon}>{node.icon}</View>
+                <View className={styles.timelineLine}></View>
+                <View className={styles.timelineContent}>
+                  <View className={styles.timelineTime}>{formatDateTime(node.time)}</View>
+                  <View className={styles.timelineTitle}>{node.title}</View>
+                  <View className={styles.timelineDetail}>
+                    {node.content.map((line, i) => (
+                      <View key={i}>{line}</View>
+                    ))}
+                  </View>
+                  {nodeNotes.length > 0 && (
+                    <View className={styles.timelineNotes}>
+                      {nodeNotes.map((noteItem) => (
+                        <View key={noteItem.id} className={styles.timelineNoteItem}>
+                          <View className={styles.noteHeader}>
+                            <Text className={styles.noteNurse}>{noteItem.nurseName}</Text>
+                            <Text className={styles.noteTime}>{formatDateTime(noteItem.createTime)}</Text>
+                          </View>
+                          <View className={styles.noteContent}>{noteItem.note}</View>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                  <Button
+                    className={styles.addNoteBtn}
+                    onClick={() => handleAddNote(node.nodeType, node.time)}
+                  >
+                    + 补录步骤备注
+                  </Button>
                 </View>
               </View>
-            </View>
-          ))}
+            )
+          })}
         </View>
       )}
 

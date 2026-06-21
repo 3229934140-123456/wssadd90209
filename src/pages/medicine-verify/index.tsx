@@ -33,9 +33,9 @@ const MedicineVerifyPage: React.FC = () => {
   } = useAppStore()
 
   useEffect(() => {
-    console.log('[MedicineVerify] Initializing with mock data')
-    setInjectionRecords(mockInjectionRecords)
-    if (mockInjectionRecords.length > 0) {
+    const { injectionRecords, medicines } = useAppStore.getState()
+    if (injectionRecords.length === 0) setInjectionRecords(mockInjectionRecords)
+    if (medicines.length === 0 && mockInjectionRecords.length > 0) {
       setMedicines(mockInjectionRecords[0].medicines)
     }
   }, [setMedicines, setInjectionRecords])

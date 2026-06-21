@@ -470,3 +470,40 @@
   color: $color-text-secondary;
   line-height: 1.8;
 }
+.timelineNotes {
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1rpx dashed $color-divider;
+}
+.timelineNoteItem {
+  background: $color-bg-gray;
+  border-radius: $radius-sm;
+  padding: $spacing-sm;
+  margin-bottom: $spacing-sm;
+  &:last-child { margin-bottom: 0; }
+}
+.noteHeader {
+  display: flex;
+  justify-content: space-between;
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+  margin-bottom: 6rpx;
+}
+.noteNurse { font-weight: $font-weight-medium; }
+.noteTime { font-size: 22rpx; }
+.noteContent {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  line-height: 1.6;
+}
+.addNoteBtn {
+  @include button-reset;
+  margin-top: $spacing-md;
+  height: 56rpx;
+  border-radius: $radius-round;
+  background: rgba($color-primary, 0.08);
+  color: $color-primary;
+  font-size: 24rpx;
+  font-weight: $font-weight-medium;
+  padding: 0 $spacing-lg;
+}

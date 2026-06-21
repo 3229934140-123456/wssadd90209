@@ -9,7 +9,8 @@ import type {
   PostopReminder,
   ReceptionItem,
   FollowupRecord,
-  ExportRecord
+  ExportRecord,
+  TimelineNote
 } from '@/types'
 
 interface AppState {
@@ -46,6 +47,9 @@ interface AppState {
   setFollowupRecords: (records: FollowupRecord[]) => void
   setExportRecords: (records: ExportRecord[]) => void
   addExportRecord: (record: ExportRecord) => void
+  addTimelineNote: (recordId: string, note: Omit<TimelineNote, 'id' | 'createTime'>) => void
+  updateTimelineNote: (recordId: string, noteId: string, updates: Partial<TimelineNote>) => void
+  deleteTimelineNote: (recordId: string, noteId: string) => void
   syncCurrentToRecords: () => void
   clearCurrent: () => void
 }
@@ -79,6 +83,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       doctorName: '',
       signatureTime: '',
       postopReminders: [],
+      timelineNotes: [],
       status: 'draft',
       createTime: new Date().toISOString(),
       updateTime: new Date().toISOString()
@@ -299,6 +304,80 @@ export const useAppStore = create<AppState>((set, get) => ({
     const { exportRecords } = get()
     set({ exportRecords: [record, ...exportRecords] })
     console.log('[Store] Added export record:', record.id)
+  },
+
+  addTimelineNote: (recordId, note) => {
+    const { currentInjection, injectionRecords } = get()
+    const newNote: TimelineNote = {
+      ...note,
+      id: `note_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      createTime: new Date().toISOString()
+    }
+    let updatedCurrent = currentInjection
+    if (currentInjection && currentInjection.id === recordId) {
+      updatedCurrent = {
+        ...currentInjection,
+        timelineNotes: [...currentInjection.timelineNotes, newNote],
+        updateTime: new Date().toISOString()
+      }
+    }
+    const updatedRecords = injectionRecords.map(r =>
+      r.id === recordId
+        ? { ...r, timelineNotes: [...r.timelineNotes, newNote], updateTime: new Date().toISOString() }
+        : r
+    )
+    console.log('[Store] Added timeline note to record:', recordId)
+    set({ currentInjection: updatedCurrent, injectionRecords: updatedRecords })
+  },
+
+  updateTimelineNote: (recordId, noteId, updates) => {
+    const { currentInjection, injectionRecords } = get()
+    let updatedCurrent = currentInjection
+    if (currentInjection && currentInjection.id === recordId) {
+      updatedCurrent = {
+        ...currentInjection,
+        timelineNotes: currentInjection.timelineNotes.map(n =>
+          n.id === noteId ? { ...n, ...updates } : n
+        ),
+        updateTime: new Date().toISOString()
+      }
+    }
+    const updatedRecords = injectionRecords.map(r =>
+      r.id === recordId
+        ? {
+            ...r,
+            timelineNotes: r.timelineNotes.map(n =>
+              n.id === noteId ? { ...n, ...updates } : n
+            ),
+            updateTime: new Date().toISOString()
+          }
+        : r
+    )
+    console.log('[Store] Updated timeline note:', noteId, 'in record:', recordId)
+    set({ currentInjection: updatedCurrent, injectionRecords: updatedRecords })
+  },
+
+  deleteTimelineNote: (recordId, noteId) => {
+    const { currentInjection, injectionRecords } = get()
+    let updatedCurrent = currentInjection
+    if (currentInjection && currentInjection.id === recordId) {
+      updatedCurrent = {
+        ...currentInjection,
+        timelineNotes: currentInjection.timelineNotes.filter(n => n.id !== noteId),
+        updateTime: new Date().toISOString()
+      }
+    }
+    const updatedRecords = injectionRecords.map(r =>
+      r.id === recordId
+        ? {
+            ...r,
+            timelineNotes: r.timelineNotes.filter(n => n.id !== noteId),
+            updateTime: new Date().toISOString()
+          }
+        : r
+    )
+    console.log('[Store] Deleted timeline note:', noteId, 'from record:', recordId)
+    set({ currentInjection: updatedCurrent, injectionRecords: updatedRecords })
   },
 
   syncCurrentToRecords: () => {

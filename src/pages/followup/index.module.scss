@@ -608,3 +608,174 @@
   color: $color-text-primary;
   font-weight: $font-weight-medium;
 }
+
+.scoreFilterRow {
+  display: flex;
+  gap: $spacing-sm;
+  margin: 0 $page-padding $spacing-md;
+  overflow-x: auto;
+}
+
+.scoreFilterBtn {
+  @include button-reset;
+  padding: $spacing-xs $spacing-md;
+  border-radius: $radius-round;
+  font-size: $font-size-sm;
+  background: $color-bg-gray;
+  color: $color-text-secondary;
+  white-space: nowrap;
+}
+
+.scoreFilterActive {
+  background: $color-primary;
+  color: $color-text-white;
+}
+
+.satisfactionStars {
+  display: flex;
+  gap: 8rpx;
+}
+
+.star {
+  font-size: 48rpx;
+  color: $color-border;
+}
+
+.starFilled {
+  color: #FAAD14;
+}
+
+.effectBadge {
+  font-size: 22rpx;
+  padding: 4rpx 16rpx;
+  border-radius: $radius-xs;
+  display: inline-block;
+  margin-top: 8rpx;
+}
+
+.effectExcellent {
+  background: rgba(82, 196, 26, 0.1);
+  color: $color-success;
+}
+
+.effectGood {
+  background: rgba(24, 144, 255, 0.1);
+  color: $color-primary;
+}
+
+.effectFair {
+  background: rgba(250, 140, 22, 0.1);
+  color: $color-warning;
+}
+
+.effectPoor {
+  background: rgba(255, 77, 79, 0.1);
+  color: $color-error;
+}
+
+.needFollowupTag {
+  background: rgba(255, 77, 79, 0.1);
+  color: $color-error;
+  font-size: 20rpx;
+  padding: 2rpx 12rpx;
+  border-radius: $radius-xs;
+  margin-left: 8rpx;
+}
+
+.scoreModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $page-padding;
+}
+
+.scoreModalContent {
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-xl $page-padding;
+}
+
+.scoreRow {
+  margin-bottom: $spacing-lg;
+}
+
+.scoreLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-sm;
+  display: block;
+}
+
+.scoreInput {
+  width: 100%;
+  height: 64rpx;
+  background: $color-bg-gray;
+  border-radius: $radius-md;
+  padding: 0 $spacing-md;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+}
+
+.areaTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.areaTag {
+  @include button-reset;
+  padding: 12rpx 24rpx;
+  border-radius: $radius-round;
+  font-size: $font-size-sm;
+  background: $color-bg-gray;
+  color: $color-text-secondary;
+  border: 2rpx solid transparent;
+}
+
+.areaTagActive {
+  background: rgba($color-primary, 0.08);
+  color: $color-primary;
+  border-color: $color-primary;
+}
+
+.effectLevelRow {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.effectLevelBtn {
+  @include button-reset;
+  flex: 1;
+  padding: $spacing-sm;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  background: $color-bg-gray;
+  color: $color-text-secondary;
+}
+
+.effectLevelActivePoor {
+  background: rgba(255, 77, 79, 0.1);
+  color: $color-error;
+}
+
+.effectLevelActiveFair {
+  background: rgba(250, 140, 22, 0.1);
+  color: $color-warning;
+}
+
+.effectLevelActiveGood {
+  background: rgba(24, 144, 255, 0.1);
+  color: $color-primary;
+}
+
+.effectLevelActiveExcellent {
+  background: rgba(82, 196, 26, 0.1);
+  color: $color-success;
+}

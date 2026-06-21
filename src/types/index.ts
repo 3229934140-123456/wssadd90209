@@ -82,6 +82,15 @@ export interface PostopReminder {
   completed: boolean
 }
 
+export interface TimelineNote {
+  id: string
+  nodeType: 'project' | 'points' | 'medicine' | 'photo' | 'abnormal' | 'signature'
+  nodeTime: string
+  note: string
+  nurseName: string
+  createTime: string
+}
+
 export interface InjectionRecord {
   id: string
   customerId: string
@@ -96,6 +105,7 @@ export interface InjectionRecord {
   doctorName: string
   signatureTime: string
   postopReminders: PostopReminder[]
+  timelineNotes: TimelineNote[]
   status: 'draft' | 'confirmed' | 'completed'
   createTime: string
   updateTime: string
@@ -108,6 +118,9 @@ export interface FollowupRecord {
   customerName: string
   followupDate: string
   absorptionRate: number
+  satisfactionScore: number
+  effectLevel: 'poor' | 'fair' | 'good' | 'excellent'
+  needsFollowup: boolean
   supplementAreas: string[]
   comparisonPhotos: {
     oldPhotoUrl: string
@@ -122,6 +135,9 @@ export interface FollowupRecord {
     newPhotoUrl: string
     savedTime: string
     pointCount: number
+    absorptionSnapshot: number
+    satisfactionSnapshot: number
+    supplementSnapshot: string[]
   }[]
 }
 

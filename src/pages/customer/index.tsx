@@ -21,8 +21,8 @@ const CustomerPage: React.FC = () => {
   const { customers, setCustomers, setCurrentCustomer } = useAppStore()
 
   useEffect(() => {
-    console.log('[Customer] Initializing with mock data')
-    setCustomers(mockCustomers)
+    const { customers } = useAppStore.getState()
+    if (customers.length === 0) setCustomers(mockCustomers)
   }, [setCustomers])
 
   const filteredCustomers = useMemo(() => {

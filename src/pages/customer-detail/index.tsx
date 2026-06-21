@@ -11,11 +11,8 @@ const CustomerDetailPage: React.FC = () => {
   const router = useRouter()
   const customerId = router.params.id as string
   const {
-    customers,
     setCustomers,
-    currentCustomer,
     setCurrentCustomer,
-    injectionRecords,
     setInjectionRecords
   } = useAppStore()
 
@@ -23,23 +20,24 @@ const CustomerDetailPage: React.FC = () => {
   const [customerHistory, setCustomerHistory] = useState<any[]>([])
 
   useEffect(() => {
-    console.log('[CustomerDetail] Initializing with mock data')
-    setCustomers(mockCustomers)
-    setInjectionRecords(mockInjectionRecords)
+    const { customers, injectionRecords } = useAppStore.getState()
+    if (customers.length === 0) setCustomers(mockCustomers)
+    if (injectionRecords.length === 0) setInjectionRecords(mockInjectionRecords)
   }, [setCustomers, setInjectionRecords])
 
   useDidShow(() => {
-    console.log('[CustomerDetail] Page did show, customerId:', customerId)
+    const { customers, injectionRecords } = useAppStore.getState()
+    const allCustomers = customers.length > 0 ? customers : mockCustomers
+    const allRecords = injectionRecords.length > 0 ? injectionRecords : mockInjectionRecords
     if (customerId) {
-      const found = customers.find(c => c.id === customerId) || mockCustomers[0]
+      const found = allCustomers.find(c => c.id === customerId) || allCustomers[0]
       setCustomer(found)
       setCurrentCustomer(found)
-      const allRecords = injectionRecords.length > 0 ? injectionRecords : mockInjectionRecords
-      const history = allRecords.filter(r => r.customerId === found.id || (found && r.customerId === found.id))
+      const history = allRecords.filter(r => r.customerId === found.id)
       setCustomerHistory(history)
     } else {
-      setCustomer(mockCustomers[0])
-      setCurrentCustomer(mockCustomers[0])
+      setCustomer(allCustomers[0])
+      setCurrentCustomer(allCustomers[0])
     }
   })
 

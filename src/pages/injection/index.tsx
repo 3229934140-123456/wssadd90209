@@ -33,9 +33,7 @@ const InjectionPage: React.FC = () => {
     initInjection,
     addInjectionPoint,
     removeInjectionPoint,
-    updateInjectionPoint,
     setAbnormalNotes,
-    addMedicine,
     addPhoto,
     confirmInjection,
     setCustomers
@@ -53,7 +51,8 @@ const InjectionPage: React.FC = () => {
   const [abnormalNotes, setAbnormalNotesState] = useState('')
 
   useEffect(() => {
-    setCustomers(mockCustomers)
+    const { customers } = useAppStore.getState()
+    if (customers.length === 0) setCustomers(mockCustomers)
   }, [setCustomers])
 
   const handleSelectProject = (type: InjectionProjectType) => {
@@ -116,11 +115,12 @@ const InjectionPage: React.FC = () => {
   }
 
   const handleSelectCustomer = () => {
-    console.log('[Injection] Open customer selection')
+    const { customers } = useAppStore.getState()
+    const allCustomers = customers.length > 0 ? customers : mockCustomers
     Taro.showActionSheet({
-      itemList: mockCustomers.map(c => `${c.name} - ${c.phone}`),
+      itemList: allCustomers.map(c => `${c.name} - ${c.phone}`),
       success: (res) => {
-        const customer = mockCustomers[res.tapIndex]
+        const customer = allCustomers[res.tapIndex]
         setCurrentCustomer(customer)
         setSelectedProject(null)
       }

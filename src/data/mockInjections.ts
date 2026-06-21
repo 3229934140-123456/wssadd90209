@@ -98,7 +98,25 @@ export const mockInjectionRecords: InjectionRecord[] = [
     ],
     status: 'completed',
     createTime: '2026-06-15T09:00:00Z',
-    updateTime: '2026-06-15T09:30:00Z'
+    updateTime: '2026-06-15T09:30:00Z',
+    timelineNotes: [
+      {
+        id: 'note_001',
+        nodeType: 'medicine',
+        nodeTime: '2026-06-15T09:05:30Z',
+        note: '药品批号核验异常，联系药房确认后手动确认通过，批号B202601001外包装略有磨损但内容物无异常',
+        nurseName: '操作护士',
+        createTime: '2026-06-15T09:06:15Z'
+      },
+      {
+        id: 'note_002',
+        nodeType: 'photo',
+        nodeTime: '2026-06-15T09:10:00Z',
+        note: '拍照时客户头部略向左侧偏斜，已手动调整体位后重拍，正面照和左侧面照均已重新采集',
+        nurseName: '操作护士',
+        createTime: '2026-06-15T09:12:30Z'
+      }
+    ]
   },
   {
     id: 'inj_20260610_001',
@@ -164,7 +182,8 @@ export const mockInjectionRecords: InjectionRecord[] = [
     ],
     status: 'completed',
     createTime: '2026-06-10T10:00:00Z',
-    updateTime: '2026-06-10T10:45:00Z'
+    updateTime: '2026-06-10T10:45:00Z',
+    timelineNotes: []
   },
   {
     id: 'inj_20260528_001',
@@ -209,7 +228,8 @@ export const mockInjectionRecords: InjectionRecord[] = [
     postopReminders: [],
     status: 'completed',
     createTime: '2026-05-28T14:00:00Z',
-    updateTime: '2026-05-28T14:45:00Z'
+    updateTime: '2026-05-28T14:45:00Z',
+    timelineNotes: []
   }
 ]
 
@@ -221,6 +241,9 @@ export const mockFollowupRecords: FollowupRecord[] = [
     customerName: '张女士',
     followupDate: '2026-06-22',
     absorptionRate: 15,
+    satisfactionScore: 4,
+    effectLevel: 'good',
+    needsFollowup: true,
     supplementAreas: ['左侧鱼尾纹', '右侧鱼尾纹'],
     comparisonPhotos: [
       {
@@ -239,6 +262,9 @@ export const mockFollowupRecords: FollowupRecord[] = [
     customerName: '李女士',
     followupDate: '2026-06-20',
     absorptionRate: 20,
+    satisfactionScore: 3,
+    effectLevel: 'fair',
+    needsFollowup: true,
     supplementAreas: ['左侧苹果肌'],
     comparisonPhotos: [
       {
@@ -257,6 +283,9 @@ export const mockFollowupRecords: FollowupRecord[] = [
     customerName: '王女士',
     followupDate: '2026-06-18',
     absorptionRate: 25,
+    satisfactionScore: 5,
+    effectLevel: 'excellent',
+    needsFollowup: false,
     supplementAreas: [],
     comparisonPhotos: [
       {

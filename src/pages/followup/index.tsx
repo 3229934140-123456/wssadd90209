@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { View, Text, Image, Button, ScrollView } from '@tarojs/components'
+import { View, Text, Image, Button, ScrollView, Switch, Input } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import classnames from 'classnames'
 import styles from './index.module.scss'
@@ -7,7 +7,7 @@ import { useAppStore } from '@/store/useAppStore'
 import { mockInjectionRecords, mockFollowupRecords } from '@/data/mockInjections'
 import { formatDate, formatDateTime, getProjectTypeText } from '@/utils/date'
 import { FACIAL_POINTS_CONFIG } from '@/types'
-import type { PostopReminder } from '@/types'
+import type { PostopReminder, FollowupRecord } from '@/types'
 
 const REMINDER_ICONS: Record<string, string> = {
   ice: '🧊',
@@ -16,6 +16,28 @@ const REMINDER_ICONS: Record<string, string> = {
   medication: '💊',
   followup: '📅'
 }
+
+const SUPPLEMENT_AREA_OPTIONS = [
+  '额纹', '鱼尾纹', '眉间纹', '苹果肌', '鼻唇沟', '下巴', '太阳穴', '下颌缘'
+]
+
+const EFFECT_LEVEL_LABELS: Record<string, string> = {
+  poor: '较差',
+  fair: '一般',
+  good: '良好',
+  excellent: '优秀'
+}
+
+type ScoreFilterType = 'all' | 'need_followup' | 'excellent' | 'good' | 'fair' | 'poor'
+
+const SCORE_FILTER_OPTIONS: { value: ScoreFilterType; label: string }[] = [
+  { value: 'all', label: '全部' },
+  { value: 'need_followup', label: '需跟进' },
+  { value: 'excellent', label: '优秀' },
+  { value: 'good', label: '良好' },
+  { value: 'fair', label: '一般' },
+  { value: 'poor', label: '较差' }
+]
 
 const FollowupPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'reminders' | 'followup'>('reminders')
@@ -26,6 +48,16 @@ const FollowupPage: React.FC = () => {
   const [showSavedComparison, setShowSavedComparison] = useState(false)
   const [selectedSavedComparison, setSelectedSavedComparison] = useState<any>(null)
   const [currentFollowupRecordId, setCurrentFollowupRecordId] = useState('')
+  const [scoreFilter, setScoreFilter] = useState<ScoreFilterType>('all')
+  const [showScoreModal, setShowScoreModal] = useState(false)
+  const [scoreForm, setScoreForm] = useState({
+    absorptionRate: 0,
+    satisfactionScore: 3,
+    supplementAreas: [] as string[],
+    effectLevel: 'fair' as 'poor' | 'fair' | 'good' | 'excellent',
+    needsFollowup: false
+  })
+  const [pendingComparison, setPendingComparison] = useState<any>(null)
   const {
     currentInjection,
     setInjectionRecords,
@@ -35,9 +67,9 @@ const FollowupPage: React.FC = () => {
   } = useAppStore()
 
   useEffect(() => {
-    console.log('[Followup] Initializing with mock data')
-    setInjectionRecords(mockInjectionRecords)
-    setFollowupRecords(mockFollowupRecords)
+    const { injectionRecords, followupRecords } = useAppStore.getState()
+    if (injectionRecords.length === 0) setInjectionRecords(mockInjectionRecords)
+    if (followupRecords.length === 0) setFollowupRecords(mockFollowupRecords)
   }, [setInjectionRecords, setFollowupRecords])
 
   const reminders = useMemo(() => {
@@ -80,6 +112,57 @@ const FollowupPage: React.FC = () => {
     ]
     return defaultReminders
   }, [currentInjection])
+
+  const filteredFollowupRecords = useMemo(() => {
+    if (scoreFilter === 'all') return followupRecords
+    if (scoreFilter === 'need_followup') return followupRecords.filter(r => r.needsFollowup)
+    return followupRecords.filter(r => r.effectLevel === scoreFilter)
+  }, [followupRecords, scoreFilter])
+
+  const calculateEffectLevel = (absorption: number, satisfaction: number): 'poor' | 'fair' | 'good' | 'excellent' => {
+    const score = (satisfaction * 20) - absorption
+    if (score >= 75) return 'excellent'
+    if (score >= 55) return 'good'
+    if (score >= 35) return 'fair'
+    return 'poor'
+  }
+
+  const renderStars = (score: number, interactive = false, onClick?: (s: number) => void) => {
+    return (
+      <View className={styles.satisfactionStars}>
+        {[1, 2, 3, 4, 5].map(s => (
+          <Text
+            key={s}
+            className={classnames(styles.star, { [styles.starFilled]: s <= score })}
+            onClick={() => interactive && onClick && onClick(s)}
+          >
+            ★
+          </Text>
+        ))}
+      </View>
+    )
+  }
+
+  const getEffectBadgeClass = (level: string) => {
+    const map: Record<string, string> = {
+      poor: styles.effectPoor,
+      fair: styles.effectFair,
+      good: styles.effectGood,
+      excellent: styles.effectExcellent
+    }
+    return map[level] || ''
+  }
+
+  const getEffectLevelBtnClass = (level: string, active: boolean) => {
+    if (!active) return ''
+    const map: Record<string, string> = {
+      poor: styles.effectLevelActivePoor,
+      fair: styles.effectLevelActiveFair,
+      good: styles.effectLevelActiveGood,
+      excellent: styles.effectLevelActiveExcellent
+    }
+    return map[level] || ''
+  }
 
   const handleToggleReminder = (reminderId: string) => {
     console.log('[Followup] Toggle reminder:', reminderId)
@@ -160,25 +243,92 @@ const FollowupPage: React.FC = () => {
       Taro.showToast({ title: '请先选择复诊记录', icon: 'none' })
       return
     }
-    const comp = {
+    const targetRecord = followupRecords.find(r => r.id === targetRecordId)
+    setScoreForm({
+      absorptionRate: targetRecord?.absorptionRate ?? 0,
+      satisfactionScore: targetRecord?.satisfactionScore ?? 3,
+      supplementAreas: [...(targetRecord?.supplementAreas || [])],
+      effectLevel: targetRecord?.effectLevel ?? calculateEffectLevel(targetRecord?.absorptionRate ?? 0, targetRecord?.satisfactionScore ?? 3),
+      needsFollowup: targetRecord?.needsFollowup ?? false
+    })
+    setPendingComparison({
       id: `cmp_${Date.now()}`,
       historyInjectionId: selectedHistoryId,
       historyProjectName: selectedInjection?.projectName || '',
       newPhotoUrl,
       savedTime: new Date().toISOString(),
       pointCount: comparisonPoints.length
+    })
+    setShowScoreModal(true)
+  }
+
+  const handleSubmitScore = () => {
+    if (!pendingComparison || !pendingComparison.historyInjectionId) {
+      Taro.showToast({ title: '数据异常', icon: 'none' })
+      return
+    }
+    let targetRecordId = currentFollowupRecordId
+    if (!targetRecordId && followupRecords.length > 0) {
+      targetRecordId = followupRecords[0].id
+    }
+    if (!targetRecordId) {
+      Taro.showToast({ title: '请先选择复诊记录', icon: 'none' })
+      return
+    }
+    const comp = {
+      ...pendingComparison,
+      absorptionSnapshot: scoreForm.absorptionRate,
+      satisfactionSnapshot: scoreForm.satisfactionScore,
+      supplementSnapshot: scoreForm.supplementAreas
     }
     const updatedRecords = followupRecords.map(r => {
       if (r.id === targetRecordId) {
         return {
           ...r,
+          absorptionRate: scoreForm.absorptionRate,
+          satisfactionScore: scoreForm.satisfactionScore,
+          supplementAreas: scoreForm.supplementAreas,
+          effectLevel: scoreForm.effectLevel,
+          needsFollowup: scoreForm.needsFollowup,
           savedComparisons: [...(r.savedComparisons || []), comp]
         }
       }
       return r
     })
     setFollowupRecords(updatedRecords)
-    Taro.showToast({ title: '对比图已保存', icon: 'success' })
+    setShowScoreModal(false)
+    setShowComparison(false)
+    setPendingComparison(null)
+    Taro.showToast({ title: '评分和对比图已保存', icon: 'success' })
+  }
+
+  const handleToggleSupplementArea = (area: string) => {
+    setScoreForm(prev => {
+      const exists = prev.supplementAreas.includes(area)
+      return {
+        ...prev,
+        supplementAreas: exists
+          ? prev.supplementAreas.filter(a => a !== area)
+          : [...prev.supplementAreas, area]
+      }
+    })
+  }
+
+  const handleSatisfactionChange = (score: number) => {
+    setScoreForm(prev => ({
+      ...prev,
+      satisfactionScore: score,
+      effectLevel: calculateEffectLevel(prev.absorptionRate, score)
+    }))
+  }
+
+  const handleAbsorptionChange = (value: string) => {
+    const num = Math.max(0, Math.min(100, parseInt(value) || 0))
+    setScoreForm(prev => ({
+      ...prev,
+      absorptionRate: num,
+      effectLevel: calculateEffectLevel(num, prev.satisfactionScore)
+    }))
   }
 
   const handleOpenSavedComparison = (record: any, savedComp: any) => {
@@ -338,119 +488,152 @@ const FollowupPage: React.FC = () => {
       )}
 
       {activeTab === 'followup' && (
-        <View className={styles.customerList}>
-          {followupRecords.length === 0 ? (
-            <View className={styles.emptyState}>
-              <View className={styles.emptyIcon}>📅</View>
-              <Text className={styles.emptyText}>暂无复诊记录</Text>
-            </View>
-          ) : (
-            followupRecords.map(record => {
-              const injection = injectionRecords.find(i => i.id === record.injectionRecordId)
-              return (
-                <View key={record.id} className={styles.followupCard}>
-                  <View className={styles.customerHeader}>
-                    <Image
-                      className={styles.avatar}
-                      src={`https://picsum.photos/id/${64 + parseInt(record.customerId.slice(-1))}/200/200`}
-                      mode='aspectFill'
-                    />
-                    <View className={styles.customerInfo}>
-                      <Text className={styles.customerName}>{record.customerName}</Text>
-                      <Text className={styles.projectInfo}>
-                        {injection ? getProjectTypeText(injection.projectType) : '注射项目'}
-                      </Text>
-                    </View>
-                    <View className={styles.followupDate}>
-                      {formatDate(record.followupDate)}
-                    </View>
-                  </View>
+        <>
+          <View className={styles.scoreFilterRow}>
+            {SCORE_FILTER_OPTIONS.map(opt => (
+              <Button
+                key={opt.value}
+                className={classnames(styles.scoreFilterBtn, {
+                  [styles.scoreFilterActive]: scoreFilter === opt.value
+                })}
+                onClick={() => setScoreFilter(opt.value)}
+              >
+                {opt.label}
+              </Button>
+            ))}
+          </View>
 
-                  {record.comparisonPhotos?.[0]?.newPhotoUrl && (
-                    <View className={styles.thumbnailRow}>
-                      <Text className={styles.thumbnailLabel}>对比照片：</Text>
+          <View className={styles.customerList}>
+            {filteredFollowupRecords.length === 0 ? (
+              <View className={styles.emptyState}>
+                <View className={styles.emptyIcon}>📅</View>
+                <Text className={styles.emptyText}>暂无复诊记录</Text>
+              </View>
+            ) : (
+              filteredFollowupRecords.map(record => {
+                const injection = injectionRecords.find(i => i.id === record.injectionRecordId)
+                return (
+                  <View key={record.id} className={styles.followupCard}>
+                    <View className={styles.customerHeader}>
                       <Image
-                        className={styles.thumbnailImage}
-                        src={record.comparisonPhotos[0].newPhotoUrl}
+                        className={styles.avatar}
+                        src={`https://picsum.photos/id/${64 + parseInt(record.customerId.slice(-1))}/200/200`}
                         mode='aspectFill'
                       />
+                      <View className={styles.customerInfo}>
+                        <Text className={styles.customerName}>
+                          {record.customerName}
+                          {record.needsFollowup && (
+                            <Text className={styles.needFollowupTag}>需跟进</Text>
+                          )}
+                        </Text>
+                        <Text className={styles.projectInfo}>
+                          {injection ? getProjectTypeText(injection.projectType) : '注射项目'}
+                        </Text>
+                      </View>
+                      <View className={styles.followupDate}>
+                        {formatDate(record.followupDate)}
+                      </View>
                     </View>
-                  )}
 
-                  <View className={styles.followupContent}>
-                    <View className={styles.absorptionRow}>
-                      <Text className={styles.absorptionLabel}>吸收率评估</Text>
-                      <Text className={styles.absorptionValue}>{record.absorptionRate}%</Text>
-                    </View>
-
-                    {record.supplementAreas.length > 0 && (
-                      <View className={styles.supplementTags}>
-                        {record.supplementAreas.map((area, index) => (
-                          <View key={index} className={styles.supplementTag}>
-                            建议补量：{area}
-                          </View>
-                        ))}
+                    {record.comparisonPhotos?.[0]?.newPhotoUrl && (
+                      <View className={styles.thumbnailRow}>
+                        <Text className={styles.thumbnailLabel}>对比照片：</Text>
+                        <Image
+                          className={styles.thumbnailImage}
+                          src={record.comparisonPhotos[0].newPhotoUrl}
+                          mode='aspectFill'
+                        />
                       </View>
                     )}
 
-                    <View style={{ marginBottom: '24rpx' }}>
-                      <Text style={{ fontSize: '26rpx', color: '#4E5969', lineHeight: 1.6 }}>
-                        {record.notes}
-                      </Text>
-                    </View>
+                    <View className={styles.followupContent}>
+                      <View className={styles.absorptionRow}>
+                        <Text className={styles.absorptionLabel}>吸收率评估</Text>
+                        <Text className={styles.absorptionValue}>{record.absorptionRate}%</Text>
+                      </View>
 
-                    <View style={{ marginBottom: '16rpx' }}>
-                      <Text style={{ fontSize: '24rpx', color: '#1890FF' }}>
-                        下次复诊：{formatDate(record.nextFollowupDate)}
-                      </Text>
-                    </View>
+                      <View className={styles.absorptionRow}>
+                        <Text className={styles.absorptionLabel}>满意度</Text>
+                        {renderStars(record.satisfactionScore)}
+                      </View>
 
-                    {record.savedComparisons && record.savedComparisons.length > 0 && (
-                      <View className={styles.savedComparisonRow}>
-                        <Text className={styles.savedComparisonLabel}>
-                          已保存对比（{record.savedComparisons.length}张）
-                        </Text>
-                        <View className={styles.savedComparisonThumbs}>
-                          {record.savedComparisons.map((comp: any) => (
-                            <Button
-                              key={comp.id}
-                              className={styles.savedComparisonThumb}
-                              onClick={() => handleOpenSavedComparison(record, comp)}
-                            >
-                              <Image
-                                className={styles.savedThumbImage}
-                                src={comp.newPhotoUrl}
-                                mode='aspectFill'
-                              />
-                              <View className={styles.savedThumbCount}>
-                                {comp.pointCount}点位
-                              </View>
-                            </Button>
-                          ))}
+                      <View className={styles.absorptionRow}>
+                        <Text className={styles.absorptionLabel}>效果等级</Text>
+                        <View className={classnames(styles.effectBadge, getEffectBadgeClass(record.effectLevel))}>
+                          {EFFECT_LEVEL_LABELS[record.effectLevel]}
                         </View>
                       </View>
-                    )}
 
-                    <View className={styles.actionRow}>
-                      <Button
-                        className={classnames(styles.actionBtn, styles.btnSecondary)}
-                        onClick={() => handleViewComparison(record)}
-                      >
-                        对比照片
-                      </Button>
-                      <Button
-                        className={classnames(styles.actionBtn, styles.btnPrimary)}
-                        onClick={() => handleAddSupplment(record)}
-                      >
-                        补量记录
-                      </Button>
+                      {record.supplementAreas.length > 0 && (
+                        <View className={styles.supplementTags}>
+                          {record.supplementAreas.map((area, index) => (
+                            <View key={index} className={styles.supplementTag}>
+                              建议补量：{area}
+                            </View>
+                          ))}
+                        </View>
+                      )}
+
+                      <View style={{ marginBottom: '24rpx' }}>
+                        <Text style={{ fontSize: '26rpx', color: '#4E5969', lineHeight: 1.6 }}>
+                          {record.notes}
+                        </Text>
+                      </View>
+
+                      <View style={{ marginBottom: '16rpx' }}>
+                        <Text style={{ fontSize: '24rpx', color: '#1890FF' }}>
+                          下次复诊：{formatDate(record.nextFollowupDate)}
+                        </Text>
+                      </View>
+
+                      {record.savedComparisons && record.savedComparisons.length > 0 && (
+                        <View className={styles.savedComparisonRow}>
+                          <Text className={styles.savedComparisonLabel}>
+                            已保存对比（{record.savedComparisons.length}张）
+                          </Text>
+                          <View className={styles.savedComparisonThumbs}>
+                            {record.savedComparisons.map((comp: any) => (
+                              <Button
+                                key={comp.id}
+                                className={styles.savedComparisonThumb}
+                                onClick={() => handleOpenSavedComparison(record, comp)}
+                              >
+                                <Image
+                                  className={styles.savedThumbImage}
+                                  src={comp.newPhotoUrl}
+                                  mode='aspectFill'
+                                />
+                                <View className={styles.savedThumbCount}>
+                                  {comp.pointCount}点位
+                                </View>
+                              </Button>
+                            ))}
+                          </View>
+                        </View>
+                      )}
+
+                      <View className={styles.actionRow}>
+                        <Button
+                          className={classnames(styles.actionBtn, styles.btnSecondary)}
+                          onClick={() => handleViewComparison(record)}
+                        >
+                          对比照片
+                        </Button>
+                        <Button
+                          className={classnames(styles.actionBtn, styles.btnPrimary)}
+                          onClick={() => handleAddSupplment(record)}
+                        >
+                          补量记录
+                        </Button>
+                      </View>
                     </View>
                   </View>
-                </View>
-              )
-            })
-          )}
-        </View>
+                )
+              })
+            )}
+          </View>
+        </>
       )}
 
       {showComparison && newPhotoUrl && selectedInjection && (
@@ -495,6 +678,84 @@ const FollowupPage: React.FC = () => {
                 onClick={() => setShowComparison(false)}
               >
                 关闭
+              </Button>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {showScoreModal && (
+        <View className={styles.scoreModal} onClick={() => setShowScoreModal(false)}>
+          <View className={styles.scoreModalContent} onClick={(e) => e.stopPropagation()}>
+            <Text className={styles.modalTitle}>效果评分</Text>
+
+            <View className={styles.scoreRow}>
+              <Text className={styles.scoreLabel}>吸收率（%）</Text>
+              <Input
+                className={styles.scoreInput}
+                type='number'
+                value={String(scoreForm.absorptionRate)}
+                onInput={(e) => handleAbsorptionChange(e.detail.value)}
+              />
+            </View>
+
+            <View className={styles.scoreRow}>
+              <Text className={styles.scoreLabel}>满意度</Text>
+              {renderStars(scoreForm.satisfactionScore, true, handleSatisfactionChange)}
+            </View>
+
+            <View className={styles.scoreRow}>
+              <Text className={styles.scoreLabel}>建议补量区域</Text>
+              <View className={styles.areaTags}>
+                {SUPPLEMENT_AREA_OPTIONS.map(area => (
+                  <Button
+                    key={area}
+                    className={classnames(styles.areaTag, {
+                      [styles.areaTagActive]: scoreForm.supplementAreas.includes(area)
+                    })}
+                    onClick={() => handleToggleSupplementArea(area)}
+                  >
+                    {area}
+                  </Button>
+                ))}
+              </View>
+            </View>
+
+            <View className={styles.scoreRow}>
+              <Text className={styles.scoreLabel}>效果等级</Text>
+              <View className={styles.effectLevelRow}>
+                {(['poor', 'fair', 'good', 'excellent'] as const).map(level => (
+                  <Button
+                    key={level}
+                    className={classnames(styles.effectLevelBtn, getEffectLevelBtnClass(level, scoreForm.effectLevel === level))}
+                    onClick={() => setScoreForm(prev => ({ ...prev, effectLevel: level }))}
+                  >
+                    {EFFECT_LEVEL_LABELS[level]}
+                  </Button>
+                ))}
+              </View>
+            </View>
+
+            <View className={styles.scoreRow}>
+              <Text className={styles.scoreLabel}>重点跟进</Text>
+              <Switch
+                checked={scoreForm.needsFollowup}
+                onChange={(e) => setScoreForm(prev => ({ ...prev, needsFollowup: e.detail.value }))}
+              />
+            </View>
+
+            <View className={styles.modalActions}>
+              <Button
+                className={classnames(styles.modalBtn, styles.modalBtnSecondary)}
+                onClick={() => setShowScoreModal(false)}
+              >
+                取消
+              </Button>
+              <Button
+                className={classnames(styles.modalBtn, styles.btnPrimary)}
+                onClick={handleSubmitScore}
+              >
+                提交保存
               </Button>
             </View>
           </View>
@@ -548,6 +809,24 @@ const FollowupPage: React.FC = () => {
                   <Text className={styles.savedInfoLabel}>点位数量</Text>
                   <Text className={styles.savedInfoValue}>{selectedSavedComparison.pointCount} 个</Text>
                 </View>
+                <View className={styles.savedInfoRow}>
+                  <Text className={styles.savedInfoLabel}>保存时吸收率</Text>
+                  <Text className={styles.savedInfoValue}>{selectedSavedComparison.absorptionSnapshot}%</Text>
+                </View>
+                <View className={styles.savedInfoRow}>
+                  <Text className={styles.savedInfoLabel}>保存时满意度</Text>
+                  <View className={styles.savedInfoValue}>
+                    {renderStars(selectedSavedComparison.satisfactionSnapshot || 0)}
+                  </View>
+                </View>
+                {(selectedSavedComparison.supplementSnapshot || []).length > 0 && (
+                  <View className={styles.savedInfoRow}>
+                    <Text className={styles.savedInfoLabel}>建议补量</Text>
+                    <Text className={styles.savedInfoValue}>
+                      {selectedSavedComparison.supplementSnapshot.join('、')}
+                    </Text>
+                  </View>
+                )}
               </View>
 
               <View className={styles.modalActions}>

@@ -6,7 +6,7 @@ import styles from './index.module.scss'
 import { useAppStore } from '@/store/useAppStore'
 import { mockExportRecords, mockInjectionRecords } from '@/data/mockInjections'
 import { formatDate, formatDateTime, getProjectTypeText } from '@/utils/date'
-import type { ExportRecord, InjectionRecord } from '@/types'
+import type { ExportRecord, InjectionRecord, TimelineNote } from '@/types'
 
 interface ExportAction {
   id: string
@@ -60,6 +60,24 @@ const FILTERS = [
   { value: 'success', label: '已导出' }
 ]
 
+const TOC_ITEMS = [
+  { id: 'basic', number: 1, title: '基本信息', scopes: ['points_only', 'medicine_signature', 'full'] },
+  { id: 'points', number: 2, title: '面部点位图及点位详情', scopes: ['points_only', 'full'] },
+  { id: 'medicine', number: 3, title: '药品明细与核验信息', scopes: ['medicine_signature', 'full'] },
+  { id: 'photos', number: 4, title: '术中照片及标注', scopes: ['full'] },
+  { id: 'signature', number: 5, title: '医生签名确认', scopes: ['medicine_signature', 'full'] },
+  { id: 'notes', number: 6, title: '异常备注说明', scopes: ['medicine_signature', 'full'] }
+]
+
+const padZero = (n: number, len = 2) => String(n).padStart(len, '0')
+
+const generateMedicalRecordNo = () => {
+  const now = new Date()
+  const dateStr = `${now.getFullYear()}${padZero(now.getMonth() + 1)}${padZero(now.getDate())}`
+  const rand = Math.floor(Math.random() * 9000 + 1000)
+  return `MR-${dateStr}-${rand}`
+}
+
 const ExportPage: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState('all')
   const [showSelectModal, setShowSelectModal] = useState(false)
@@ -70,14 +88,15 @@ const ExportPage: React.FC = () => {
   const [previewRecord, setPreviewRecord] = useState<InjectionRecord | null>(null)
   const [exportScope, setExportScope] = useState<'points_only' | 'medicine_signature' | 'full'>('full')
   const [previewScope, setPreviewScope] = useState<'points_only' | 'medicine_signature' | 'full'>('full')
+  const [medicalRecordNo, setMedicalRecordNo] = useState('')
   const {
     setExportRecords, setInjectionRecords, exportRecords, injectionRecords, addExportRecord
   } = useAppStore()
 
   useEffect(() => {
-    console.log('[Export] Initializing with mock data')
-    setExportRecords(mockExportRecords)
-    setInjectionRecords(mockInjectionRecords)
+    const { exportRecords, injectionRecords } = useAppStore.getState()
+    if (exportRecords.length === 0) setExportRecords(mockExportRecords)
+    if (injectionRecords.length === 0) setInjectionRecords(mockInjectionRecords)
   }, [setExportRecords, setInjectionRecords])
 
   useDidShow(() => {
@@ -136,6 +155,7 @@ const ExportPage: React.FC = () => {
     }
     setPreviewRecord(inj)
     setPreviewScope(record.exportScope || 'full')
+    setMedicalRecordNo(generateMedicalRecordNo())
     setShowPreviewModal(true)
   }
 
@@ -516,18 +536,111 @@ const ExportPage: React.FC = () => {
               ))}
             </View>
 
-            <View className={styles.previewSection}>
-              <Text className={styles.previewLabel}>项目类型</Text>
-              <Text className={styles.previewValue}>{getProjectTypeText(previewRecord.projectType)} - {previewRecord.projectName}</Text>
+            <View className={styles.exportCover}>
+              <Text className={styles.coverTitle}>📄 微整形注射病历</Text>
+              <View className={styles.coverGrid}>
+                <View className={styles.coverItem}>
+                  <Text className={styles.coverLabel}>病历编号</Text>
+                  <Text className={styles.coverValue}>{medicalRecordNo}</Text>
+                </View>
+                <View className={styles.coverItem}>
+                  <Text className={styles.coverLabel}>客户姓名</Text>
+                  <Text className={styles.coverValue}>{previewRecord.customerName}</Text>
+                </View>
+                <View className={styles.coverItem}>
+                  <Text className={styles.coverLabel}>就诊日期</Text>
+                  <Text className={styles.coverValue}>{formatDate(previewRecord.createTime)}</Text>
+                </View>
+                <View className={styles.coverItem}>
+                  <Text className={styles.coverLabel}>操作项目</Text>
+                  <Text className={styles.coverValue}>{previewRecord.projectName}</Text>
+                </View>
+                <View className={styles.coverItem}>
+                  <Text className={styles.coverLabel}>负责医生</Text>
+                  <Text className={styles.coverValue}>{previewRecord.doctorName || '王医生'}</Text>
+                </View>
+                <View className={styles.coverItem}>
+                  <Text className={styles.coverLabel}>生成时间</Text>
+                  <Text className={styles.coverValue}>{formatDateTime(new Date().toISOString())}</Text>
+                </View>
+              </View>
             </View>
 
-            <View className={styles.previewSection}>
-              <Text className={styles.previewLabel}>注射日期</Text>
-              <Text className={styles.previewValue}>{formatDate(previewRecord.createTime)}</Text>
+            <View className={styles.tocSection}>
+              <Text className={styles.tocTitle}>📋 目录</Text>
+              {TOC_ITEMS.map(item => {
+                const isActive = item.scopes.includes(previewScope)
+                return (
+                  <View
+                    key={item.id}
+                    className={classnames(styles.tocItem, {
+                      [styles.tocItemActive]: isActive,
+                      [styles.tocItemInactive]: !isActive
+                    })}
+                  >
+                    <Text>{item.number}. {item.title}</Text>
+                    {isActive && <Text className={styles.tocCheck}>✓</Text>}
+                  </View>
+                )
+              })}
             </View>
 
-            {(previewScope === 'points_only' || previewScope === 'full') && (
+            {TOC_ITEMS[0].scopes.includes(previewScope) && (
               <View className={styles.previewSection}>
+                <View className={styles.sectionHeader}>
+                  <View className={styles.sectionNumber}>1</View>
+                  <Text className={styles.sectionHeaderTitle}>基本信息</Text>
+                </View>
+                <View style={{ marginBottom: '24rpx' }}>
+                  <Text className={styles.previewLabel}>项目类型</Text>
+                  <Text className={styles.previewValue}>{getProjectTypeText(previewRecord.projectType)} - {previewRecord.projectName}</Text>
+                </View>
+                <View>
+                  <Text className={styles.previewLabel}>注射日期</Text>
+                  <Text className={styles.previewValue}>{formatDate(previewRecord.createTime)}</Text>
+                </View>
+              </View>
+            )}
+
+            {previewScope === 'full' && previewRecord.timelineNotes && previewRecord.timelineNotes.length > 0 && (
+              <View className={styles.previewSection}>
+                <View className={styles.sectionHeader}>
+                  <View className={styles.sectionNumber}>2</View>
+                  <Text className={styles.sectionHeaderTitle}>护士补录备注</Text>
+                </View>
+                {previewRecord.timelineNotes.map((noteItem: TimelineNote) => (
+                  <View key={noteItem.id} style={{
+                    background: '#F7F8FA',
+                    borderRadius: '12rpx',
+                    padding: '20rpx',
+                    marginBottom: '16rpx'
+                  }}>
+                    <View style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: '22rpx',
+                      color: '#86909C',
+                      marginBottom: '8rpx'
+                    }}>
+                      <Text style={{ fontWeight: 500 }}>{noteItem.nurseName}</Text>
+                      <Text>{formatDateTime(noteItem.createTime)}</Text>
+                    </View>
+                    <Text style={{
+                      fontSize: '26rpx',
+                      color: '#1D2129',
+                      lineHeight: 1.6
+                    }}>{noteItem.note}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {TOC_ITEMS[1].scopes.includes(previewScope) && (
+              <View className={styles.previewSection}>
+                <View className={styles.sectionHeader}>
+                  <View className={styles.sectionNumber}>3</View>
+                  <Text className={styles.sectionHeaderTitle}>面部点位图及点位详情</Text>
+                </View>
                 <Text className={styles.previewLabel}>点位列表</Text>
                 {previewRecord.points.length === 0 ? (
                   <Text className={styles.previewValue}>暂无点位</Text>
@@ -541,8 +654,12 @@ const ExportPage: React.FC = () => {
               </View>
             )}
 
-            {(previewScope === 'medicine_signature' || previewScope === 'full') && (
+            {TOC_ITEMS[2].scopes.includes(previewScope) && (
               <View className={styles.previewSection}>
+                <View className={styles.sectionHeader}>
+                  <View className={styles.sectionNumber}>4</View>
+                  <Text className={styles.sectionHeaderTitle}>药品明细与核验信息</Text>
+                </View>
                 <Text className={styles.previewLabel}>药品列表</Text>
                 {previewRecord.medicines.length === 0 ? (
                   <Text className={styles.previewValue}>暂无药品</Text>
@@ -556,8 +673,12 @@ const ExportPage: React.FC = () => {
               </View>
             )}
 
-            {previewScope === 'full' && previewRecord.photos.length > 0 && (
+            {TOC_ITEMS[3].scopes.includes(previewScope) && previewRecord.photos.length > 0 && (
               <View className={styles.previewSection}>
+                <View className={styles.sectionHeader}>
+                  <View className={styles.sectionNumber}>5</View>
+                  <Text className={styles.sectionHeaderTitle}>术中照片及标注</Text>
+                </View>
                 <Text className={styles.previewLabel}>照片</Text>
                 <View style={{ display: 'flex', flexWrap: 'wrap', gap: '16rpx' }}>
                   {previewRecord.photos.map((photo) => (
@@ -572,15 +693,23 @@ const ExportPage: React.FC = () => {
               </View>
             )}
 
-            {(previewScope === 'medicine_signature' || previewScope === 'full') && previewRecord.doctorSignature && (
+            {TOC_ITEMS[4].scopes.includes(previewScope) && previewRecord.doctorSignature && (
               <View className={styles.previewSection}>
+                <View className={styles.sectionHeader}>
+                  <View className={styles.sectionNumber}>6</View>
+                  <Text className={styles.sectionHeaderTitle}>医生签名确认</Text>
+                </View>
                 <Text className={styles.previewLabel}>签名</Text>
                 <Text className={styles.previewValue}>{previewRecord.doctorName} · {previewRecord.signatureTime ? formatDateTime(previewRecord.signatureTime) : ''}</Text>
               </View>
             )}
 
-            {(previewScope === 'medicine_signature' || previewScope === 'full') && previewRecord.abnormalNotes && (
+            {TOC_ITEMS[5].scopes.includes(previewScope) && previewRecord.abnormalNotes && (
               <View className={styles.previewSection}>
+                <View className={styles.sectionHeader}>
+                  <View className={styles.sectionNumber}>7</View>
+                  <Text className={styles.sectionHeaderTitle}>异常备注说明</Text>
+                </View>
                 <Text className={styles.previewLabel}>异常备注</Text>
                 <Text className={styles.previewValue}>{previewRecord.abnormalNotes}</Text>
               </View>

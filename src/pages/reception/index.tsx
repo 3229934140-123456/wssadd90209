@@ -23,8 +23,8 @@ const ReceptionPage: React.FC = () => {
   const { receptionList, setReceptionList, updateReceptionStatus, setCurrentCustomer, customers } = useAppStore()
 
   useEffect(() => {
-    console.log('[Reception] Initializing with mock data')
-    setReceptionList(mockReceptionList)
+    const { receptionList } = useAppStore.getState()
+    if (receptionList.length === 0) setReceptionList(mockReceptionList)
   }, [setReceptionList])
 
   const filteredList = useMemo(() => {
