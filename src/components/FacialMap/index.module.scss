@@ -1,0 +1,227 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.faceContainer {
+  position: relative;
+  width: 560rpx;
+  height: 700rpx;
+  margin-bottom: $spacing-lg;
+}
+
+.faceOutline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.faceShape {
+  position: absolute;
+  top: 20rpx;
+  left: 80rpx;
+  width: 400rpx;
+  height: 620rpx;
+  border: 4rpx solid #d9d9d9;
+  border-radius: 50% 50% 45% 45% / 55% 55% 45% 45%;
+  background: linear-gradient(180deg, #fff5f5 0%, #fff 100%);
+}
+
+.eyeBrowLeft {
+  position: absolute;
+  top: 180rpx;
+  left: 130rpx;
+  width: 100rpx;
+  height: 16rpx;
+  background: #8c8c8c;
+  border-radius: 8rpx 8rpx 0 0;
+  transform: rotate(-8deg);
+}
+
+.eyeBrowRight {
+  position: absolute;
+  top: 180rpx;
+  right: 130rpx;
+  width: 100rpx;
+  height: 16rpx;
+  background: #8c8c8c;
+  border-radius: 8rpx 8rpx 0 0;
+  transform: rotate(8deg);
+}
+
+.eyeLeft {
+  position: absolute;
+  top: 220rpx;
+  left: 145rpx;
+  width: 70rpx;
+  height: 40rpx;
+  border: 3rpx solid #595959;
+  border-radius: 50%;
+}
+
+.eyeRight {
+  position: absolute;
+  top: 220rpx;
+  right: 145rpx;
+  width: 70rpx;
+  height: 40rpx;
+  border: 3rpx solid #595959;
+  border-radius: 50%;
+}
+
+.nose {
+  position: absolute;
+  top: 280rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40rpx;
+  height: 120rpx;
+  border-left: 3rpx solid #d9d9d9;
+  border-right: 3rpx solid #d9d9d9;
+  border-bottom: 3rpx solid #d9d9d9;
+  border-radius: 0 0 20rpx 20rpx;
+}
+
+.lipUpper {
+  position: absolute;
+  top: 430rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120rpx;
+  height: 30rpx;
+  background: #ffccc7;
+  border-radius: 0 0 60rpx 60rpx;
+}
+
+.lipLower {
+  position: absolute;
+  top: 455rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100rpx;
+  height: 35rpx;
+  background: #ffa39e;
+  border-radius: 0 0 50rpx 50rpx;
+}
+
+.point {
+  position: absolute;
+  width: 56rpx;
+  height: 56rpx;
+  margin-left: -28rpx;
+  margin-top: -28rpx;
+  border-radius: $radius-round;
+  border: 3rpx solid $color-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all $transition-fast;
+
+  &:active {
+    transform: scale(1.1);
+  }
+}
+
+.pointSelected {
+  width: 64rpx;
+  height: 64rpx;
+  margin-left: -32rpx;
+  margin-top: -32rpx;
+  border-width: 4rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.15);
+}
+
+.pointHovered {
+  transform: scale(1.15);
+  box-shadow: 0 4rpx 20rpx rgba(24, 144, 255, 0.3);
+}
+
+.pointDose {
+  font-size: 20rpx;
+  font-weight: $font-weight-bold;
+  color: #fff;
+}
+
+.pointLabel {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(0);
+  margin-top: $spacing-xs;
+  padding: $spacing-xs $spacing-sm;
+  background: rgba(0, 0, 0, 0.85);
+  border-radius: $radius-sm;
+  min-width: 160rpx;
+  z-index: 100;
+  white-space: nowrap;
+}
+
+.labelLeft {
+  left: auto;
+  right: 50%;
+  transform: translateX(0);
+}
+
+.pointLabelText {
+  display: block;
+  font-size: 22rpx;
+  color: #fff;
+  font-weight: $font-weight-medium;
+  text-align: center;
+}
+
+.pointLabelDetail {
+  display: block;
+  font-size: 20rpx;
+  color: $color-primary-light;
+  text-align: center;
+  margin-top: 2rpx;
+}
+
+.legend {
+  width: 100%;
+  padding: $spacing-lg;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+}
+
+.legendTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+}
+
+.legendList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-md $spacing-lg;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  min-width: 45%;
+}
+
+.legendDot {
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: $radius-round;
+  flex-shrink: 0;
+}
+
+.legendText {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}

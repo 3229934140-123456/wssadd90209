@@ -1,0 +1,126 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  width: 100%;
+  padding: $spacing-lg;
+  box-sizing: border-box;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-lg;
+}
+
+.title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.doctorName {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.padContainer {
+  position: relative;
+  width: 100%;
+  height: 400rpx;
+  background: $color-bg-card;
+  border: 2rpx dashed $color-border;
+  border-radius: $radius-lg;
+  overflow: hidden;
+}
+
+.canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.placeholderText {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+}
+
+.hint {
+  margin-top: $spacing-md;
+  padding: $spacing-md;
+  background: $color-primary-bg;
+  border-radius: $radius-sm;
+}
+
+.hintText {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: $line-height-normal;
+}
+
+.actions {
+  display: flex;
+  gap: $spacing-md;
+  margin-top: $spacing-lg;
+}
+
+.cancelBtn,
+.clearBtn,
+.confirmBtn {
+  @include button-reset;
+  flex: 1;
+  height: $button-height-md;
+  border-radius: $radius-button;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  transition: all $transition-fast;
+}
+
+.cancelBtn {
+  background: $color-bg-gray;
+  color: $color-text-secondary;
+
+  &:active {
+    opacity: 0.8;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+.clearBtn {
+  background: $color-bg-gray;
+  color: $color-text-secondary;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.confirmBtn {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  color: $color-text-white;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    background: $color-bg-gray;
+    color: $color-text-tertiary;
+  }
+}

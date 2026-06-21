@@ -1,0 +1,393 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  background: $color-bg-page;
+  padding-bottom: 120rpx;
+}
+
+.header {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  padding: $spacing-xl $page-padding;
+  padding-bottom: $spacing-xxl;
+}
+
+.title {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-white;
+  margin-bottom: $spacing-xs;
+}
+
+.subtitle {
+  font-size: $font-size-sm;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.tabs {
+  display: flex;
+  gap: $spacing-sm;
+  padding: $spacing-md $page-padding;
+  margin-top: -40rpx;
+}
+
+.tabItem {
+  @include button-reset;
+  flex: 1;
+  height: 72rpx;
+  background: $color-bg-card;
+  border-radius: $radius-button;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  box-shadow: $shadow-card;
+  transition: all $transition-fast;
+}
+
+.tabActive {
+  background: $color-primary;
+  color: $color-text-white;
+}
+
+.section {
+  margin: $spacing-md $page-padding;
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.countBadge {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  background: $color-primary-bg;
+  padding: $spacing-xs $spacing-md;
+  border-radius: $radius-round;
+}
+
+.reminderCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.reminderHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.reminderIcon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: $radius-round;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  flex-shrink: 0;
+}
+
+.iconIce {
+  background: rgba(24, 144, 255, 0.1);
+}
+
+.iconDiet {
+  background: rgba(250, 173, 20, 0.1);
+}
+
+.iconObserve {
+  background: rgba(82, 196, 26, 0.1);
+}
+
+.iconMedication {
+  background: rgba(114, 46, 209, 0.1);
+}
+
+.iconFollowup {
+  background: rgba(255, 77, 79, 0.1);
+}
+
+.reminderInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.reminderTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.reminderTime {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.reminderContent {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+  line-height: $line-height-normal;
+  margin-bottom: $spacing-md;
+  padding: $spacing-md;
+  background: $color-bg-gray;
+  border-radius: $radius-md;
+}
+
+.reminderActions {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.checkBtn {
+  @include button-reset;
+  flex: 1;
+  height: 72rpx;
+  border-radius: $radius-button;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  transition: all $transition-fast;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+.btnDone {
+  background: rgba(82, 196, 26, 0.1);
+  color: $color-success;
+}
+
+.btnCompleted {
+  background: $color-success;
+  color: $color-text-white;
+}
+
+.customerList {
+  margin-top: $spacing-md;
+}
+
+.followupCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+  transition: all $transition-fast;
+
+  &:active {
+    transform: scale(0.99);
+  }
+}
+
+.customerHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.avatar {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: $radius-round;
+  background: $color-bg-gray;
+}
+
+.customerInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.customerName {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.projectInfo {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.followupDate {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  background: $color-primary-bg;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $radius-xs;
+}
+
+.followupContent {
+  padding-top: $spacing-md;
+  border-top: 1rpx solid $color-divider;
+}
+
+.absorptionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.absorptionLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.absorptionValue {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-warning;
+}
+
+.supplementTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+}
+
+.supplementTag {
+  padding: $spacing-xs $spacing-md;
+  background: rgba(250, 173, 20, 0.1);
+  color: $color-warning;
+  border-radius: $radius-xs;
+  font-size: $font-size-sm;
+}
+
+.actionRow {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.actionBtn {
+  @include button-reset;
+  flex: 1;
+  height: 72rpx;
+  border-radius: $radius-button;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  transition: all $transition-fast;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+.btnPrimary {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  color: $color-text-white;
+}
+
+.btnSecondary {
+  background: $color-bg-gray;
+  color: $color-text-secondary;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx $page-padding;
+}
+
+.emptyIcon {
+  font-size: 120rpx;
+  margin-bottom: $spacing-lg;
+  opacity: 0.5;
+}
+
+.emptyText {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+  margin-bottom: $spacing-lg;
+}
+
+.emptyBtn {
+  @include button-reset;
+  padding: 0 $spacing-xl;
+  height: $button-height-md;
+  background: $color-primary;
+  color: $color-text-white;
+  border-radius: $radius-button;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  transition: all $transition-fast;
+
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.comparisonSection {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin: $spacing-md $page-padding;
+  box-shadow: $shadow-card;
+}
+
+.comparisonTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+}
+
+.photoCompare {
+  display: flex;
+  gap: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.photoItem {
+  flex: 1;
+  position: relative;
+  border-radius: $radius-md;
+  overflow: hidden;
+  aspect-ratio: 3/4;
+}
+
+.photoImage {
+  width: 100%;
+  height: 100%;
+  background: $color-bg-gray;
+}
+
+.photoLabel {
+  position: absolute;
+  top: $spacing-sm;
+  left: $spacing-sm;
+  padding: $spacing-xs $spacing-sm;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border-radius: $radius-xs;
+  font-size: $font-size-xs;
+}
+
+.overlayHint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: $spacing-sm $spacing-md;
+  background: rgba(24, 144, 255, 0.9);
+  color: #fff;
+  border-radius: $radius-button;
+  font-size: $font-size-sm;
+  white-space: nowrap;
+}
