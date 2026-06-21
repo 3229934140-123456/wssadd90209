@@ -105,6 +105,7 @@ export interface FollowupRecord {
   id: string
   injectionRecordId: string
   customerId: string
+  customerName: string
   followupDate: string
   absorptionRate: number
   supplementAreas: string[]

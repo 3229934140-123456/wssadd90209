@@ -244,7 +244,7 @@ const InjectionDetailPage: React.FC = () => {
           <Text className={styles.sectionTitle}>术中照片</Text>
           <View className={styles.photoGrid}>
             {record.photos.map((photo: any, index: number) => (
-              <View key={index} className={styles.photoItem} style={{ position: 'relative' }}>
+              <View key={index} className={styles.photoItem}>
                 <Image
                   className={styles.photoImage}
                   src={photo.url}
@@ -253,23 +253,13 @@ const InjectionDetailPage: React.FC = () => {
                 {photo.markers && photo.markers.map((marker: any) => (
                   <View
                     key={marker.id}
+                    className={styles.photoMarkerDot}
                     style={{
-                      position: 'absolute',
                       left: `${marker.x}%`,
                       top: `${marker.y}%`,
-                      transform: 'translate(-50%, -50%)',
-                      zIndex: 10
+                      background: marker.color
                     }}
-                  >
-                    <View style={{
-                      width: '20rpx',
-                      height: '20rpx',
-                      borderRadius: '50%',
-                      background: marker.color,
-                      border: '2rpx solid #fff',
-                      boxShadow: '0 2rpx 6rpx rgba(0,0,0,0.3)'
-                    }} />
-                  </View>
+                  />
                 ))}
                 <View className={styles.photoLabel}>
                   {photo.type === 'front' ? '正面' : photo.type === 'side_left' ? '左侧面' : photo.type === 'side_right' ? '右侧面' : '照片'}

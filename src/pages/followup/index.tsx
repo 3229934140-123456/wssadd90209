@@ -84,10 +84,19 @@ const FollowupPage: React.FC = () => {
 
   const handleViewComparison = (record: any) => {
     const inj = injectionRecords.find(i => i.id === record.injectionRecordId)
-    if (inj) {
-      setSelectedHistoryId(inj.id)
+    if (!inj) {
+      Taro.showToast({ title: '未找到关联注射记录', icon: 'none' })
+      return
     }
-    setShowComparison(true)
+    setSelectedHistoryId(inj.id)
+
+    const newPhoto = record.comparisonPhotos?.[0]?.newPhotoUrl
+    if (newPhoto) {
+      setNewPhotoUrl(newPhoto)
+      setShowComparison(true)
+    } else {
+      Taro.showToast({ title: '请先从上方选择新照片', icon: 'none' })
+    }
   }
 
   const handleAddSupplment = (record: any) => {
@@ -309,6 +318,17 @@ const FollowupPage: React.FC = () => {
                       {formatDate(record.followupDate)}
                     </View>
                   </View>
+
+                  {record.comparisonPhotos?.[0]?.newPhotoUrl && (
+                    <View className={styles.thumbnailRow}>
+                      <Text className={styles.thumbnailLabel}>对比照片：</Text>
+                      <Image
+                        className={styles.thumbnailImage}
+                        src={record.comparisonPhotos[0].newPhotoUrl}
+                        mode='aspectFill'
+                      />
+                    </View>
+                  )}
 
                   <View className={styles.followupContent}>
                     <View className={styles.absorptionRow}>

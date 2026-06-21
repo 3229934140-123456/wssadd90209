@@ -23,27 +23,27 @@ const PhotoAnnotatePage: React.FC = () => {
   const [selectedLabel, setSelectedLabel] = useState(MARKER_LABELS[0])
   const [showLabelPicker, setShowLabelPicker] = useState(false)
 
-  const handleImageClick = useCallback((e: any) => {
-    const touch = e.touches?.[0] || e.changedTouches?.[0] || e.detail
+  const handleImageTouchEnd = useCallback((e: any) => {
+    const touch = e.changedTouches?.[0] || e.touches?.[0]
     if (!touch) return
 
-    const query = Taro.createSelectorQuery()
-    query.select('#annotateImage').boundingClientRect((rect: any) => {
-      if (!rect) return
-      const x = Math.round(((touch.clientX - rect.left) / rect.width) * 100)
-      const y = Math.round(((touch.clientY - rect.top) / rect.height) * 100)
+    Taro.createSelectorQuery()
+      .select('#annotateImage')
+      .boundingClientRect((rect: any) => {
+        if (!rect || rect.width === 0 || rect.height === 0) return
+        const x = Math.min(100, Math.max(0, Math.round(((touch.clientX - rect.left) / rect.width) * 100)))
+        const y = Math.min(100, Math.max(0, Math.round(((touch.clientY - rect.top) / rect.height) * 100)))
 
-      if (x < 0 || x > 100 || y < 0 || y > 100) return
-
-      const newMarker: PhotoMarker = {
-        id: `mk_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-        x,
-        y,
-        color: selectedColor,
-        label: selectedLabel
-      }
-      setMarkers(prev => [...prev, newMarker])
-    }).exec()
+        const newMarker: PhotoMarker = {
+          id: `mk_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          x,
+          y,
+          color: selectedColor,
+          label: selectedLabel
+        }
+        setMarkers(prev => [...prev, newMarker])
+      })
+      .exec()
   }, [selectedColor, selectedLabel])
 
   const handleRemoveMarker = (markerId: string) => {
@@ -65,7 +65,14 @@ const PhotoAnnotatePage: React.FC = () => {
         photos: updatedPhotos,
         updateTime: new Date().toISOString()
       }
-      useAppStore.setState({ currentInjection: updatedInjection })
+      const { injectionRecords } = useAppStore.getState()
+      const updatedRecords = injectionRecords.map(r =>
+        r.id === updatedInjection.id ? updatedInjection : r
+      )
+      useAppStore.setState({
+        currentInjection: updatedInjection,
+        injectionRecords: updatedRecords
+      })
     } else {
       const newPhoto = {
         id: photoId || `photo_${Date.now()}`,
@@ -131,29 +138,31 @@ const PhotoAnnotatePage: React.FC = () => {
         </View>
       )}
 
-      <View
-        className={styles.imageContainer}
-        onClick={handleImageClick}
-      >
-        <Image
-          id='annotateImage'
-          className={styles.annotateImage}
-          src={photoUrl}
-          mode='widthFix'
-        />
-        {markers.map(marker => (
-          <View
-            key={marker.id}
-            className={styles.marker}
-            style={{ left: `${marker.x}%`, top: `${marker.y}%` }}
-            onClick={(e) => { e.stopPropagation(); handleRemoveMarker(marker.id) }}
-          >
-            <View className={styles.markerDot} style={{ background: marker.color }} />
-            <View className={styles.markerLabel} style={{ background: marker.color }}>
-              {marker.label}
+      <View catchMove>
+        <View
+          className={styles.imageContainer}
+          onTouchEnd={handleImageTouchEnd}
+        >
+          <Image
+            id='annotateImage'
+            className={styles.annotateImage}
+            src={photoUrl}
+            mode='widthFix'
+          />
+          {markers.map(marker => (
+            <View
+              key={marker.id}
+              className={styles.marker}
+              style={{ left: `${marker.x}%`, top: `${marker.y}%` }}
+              onClick={(e) => { e.stopPropagation(); handleRemoveMarker(marker.id) }}
+            >
+              <View className={styles.markerDot} style={{ background: marker.color }} />
+              <View className={styles.markerLabel} style={{ background: marker.color }}>
+                {marker.label}
+              </View>
             </View>
-          </View>
-        ))}
+          ))}
+        </View>
       </View>
 
       <View className={styles.markerList}>

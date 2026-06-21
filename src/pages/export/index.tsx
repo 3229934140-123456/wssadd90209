@@ -4,7 +4,7 @@ import Taro, { useDidShow } from '@tarojs/taro'
 import classnames from 'classnames'
 import styles from './index.module.scss'
 import { useAppStore } from '@/store/useAppStore'
-import { mockExportRecords } from '@/data/mockInjections'
+import { mockExportRecords, mockInjectionRecords } from '@/data/mockInjections'
 import { formatDate, formatDateTime, getProjectTypeText } from '@/utils/date'
 import type { ExportRecord, InjectionRecord } from '@/types'
 
@@ -63,13 +63,14 @@ const ExportPage: React.FC = () => {
   const [showPreviewModal, setShowPreviewModal] = useState(false)
   const [previewRecord, setPreviewRecord] = useState<InjectionRecord | null>(null)
   const {
-    setExportRecords, exportRecords, injectionRecords, addExportRecord
+    setExportRecords, setInjectionRecords, exportRecords, injectionRecords, addExportRecord
   } = useAppStore()
 
   useEffect(() => {
     console.log('[Export] Initializing with mock data')
     setExportRecords(mockExportRecords)
-  }, [setExportRecords])
+    setInjectionRecords(mockInjectionRecords)
+  }, [setExportRecords, setInjectionRecords])
 
   useDidShow(() => {
     console.log('[Export] Page did show')

@@ -218,17 +218,52 @@ export const mockFollowupRecords: FollowupRecord[] = [
     id: 'foll_001',
     injectionRecordId: 'inj_20260615_001',
     customerId: 'cust_001',
+    customerName: '张女士',
     followupDate: '2026-06-22',
     absorptionRate: 15,
     supplementAreas: ['左侧鱼尾纹', '右侧鱼尾纹'],
     comparisonPhotos: [
       {
         oldPhotoUrl: 'https://picsum.photos/id/64/600/800',
-        newPhotoUrl: 'https://picsum.photos/id/91/600/800'
+        newPhotoUrl: 'https://picsum.photos/seed/followup_new_1/600/800'
       }
     ],
     notes: '客户反馈效果良好，额纹基本平复，鱼尾纹略有残留，建议3个月后补量',
     nextFollowupDate: '2026-09-22'
+  },
+  {
+    id: 'foll_002',
+    injectionRecordId: 'inj_20260610_001',
+    customerId: 'cust_002',
+    customerName: '李女士',
+    followupDate: '2026-06-20',
+    absorptionRate: 20,
+    supplementAreas: ['左侧苹果肌'],
+    comparisonPhotos: [
+      {
+        oldPhotoUrl: 'https://picsum.photos/id/177/600/800',
+        newPhotoUrl: 'https://picsum.photos/seed/followup_new_2/600/800'
+      }
+    ],
+    notes: '苹果肌填充效果自然，左侧略有吸收，建议1个月后复诊评估是否补量',
+    nextFollowupDate: '2026-07-20'
+  },
+  {
+    id: 'foll_003',
+    injectionRecordId: 'inj_20260528_001',
+    customerId: 'cust_003',
+    customerName: '王女士',
+    followupDate: '2026-06-18',
+    absorptionRate: 25,
+    supplementAreas: [],
+    comparisonPhotos: [
+      {
+        oldPhotoUrl: 'https://picsum.photos/id/65/600/800',
+        newPhotoUrl: 'https://picsum.photos/seed/followup_new_3/600/800'
+      }
+    ],
+    notes: '额纹改善明显，客户满意，暂无补量需求，建议半年后再次治疗',
+    nextFollowupDate: '2026-12-18'
   }
 ]
 

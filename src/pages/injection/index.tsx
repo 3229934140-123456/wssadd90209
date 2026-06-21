@@ -17,6 +17,14 @@ import {
 import { getDepthText, getSideText } from '@/utils/date'
 import { mockCustomers } from '@/data/mockCustomers'
 
+const isExpiringSoon = (dateStr: string): boolean => {
+  const expiry = new Date(dateStr)
+  const now = new Date()
+  const diffTime = expiry.getTime() - now.getTime()
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  return diffDays <= 60 && diffDays >= 0
+}
+
 const InjectionPage: React.FC = () => {
   const {
     currentCustomer,
@@ -362,6 +370,43 @@ const InjectionPage: React.FC = () => {
           <Text className={styles.actionDesc}>查看往期注射记录</Text>
         </Button>
       </View>
+
+      {currentInjection && currentInjection.medicines.length > 0 && (
+        <View className={styles.medicineListSection}>
+          <Text className={styles.medicineListTitle}>本次核验药品</Text>
+          {currentInjection.medicines.map(med => (
+            <View key={med.id} className={styles.medicineCard}>
+              <View className={styles.medicineCardHeader}>
+                <Text className={styles.medicineName}>{med.name}</Text>
+                {med.verified && <View className={styles.verifiedBadge}>已核验</View>}
+              </View>
+              <View className={styles.medicineInfoRow}>
+                <Text className={styles.medicineLabel}>批号</Text>
+                <Text className={styles.medicineValue}>{med.batchNumber}</Text>
+              </View>
+              <View className={styles.medicineInfoRow}>
+                <Text className={styles.medicineLabel}>有效期至</Text>
+                <Text className={classnames(styles.medicineValue, {
+                  [styles.expiryWarn]: isExpiringSoon(med.expiryDate)
+                })}>{med.expiryDate}</Text>
+              </View>
+              <View className={styles.medicineInfoRow}>
+                <Text className={styles.medicineLabel}>已用量</Text>
+                <Text className={styles.medicineValue}>{med.usedDose} {med.unit}</Text>
+              </View>
+              <View className={styles.medicineInfoRow}>
+                <Text className={styles.medicineLabel}>剩余量</Text>
+                <Text className={classnames(styles.medicineValue, {
+                  [styles.remainingLow]: med.remainingDose < med.totalDose * 0.2
+                })}>{med.remainingDose} {med.unit}</Text>
+              </View>
+            </View>
+          ))}
+          <Button className={styles.addMedicineBtn} onClick={handleMedicineVerify}>
+            + 添加 / 核验药品
+          </Button>
+        </View>
+      )}
 
       <View className={styles.notesSection}>
         <Text className={styles.notesTitle}>异常备注</Text>

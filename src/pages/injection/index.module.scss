@@ -466,3 +466,91 @@
     opacity: 0.9;
   }
 }
+
+.medicineListSection {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin: $spacing-md $page-padding;
+  box-shadow: $shadow-card;
+}
+
+.medicineListTitle {
+  display: block;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+}
+
+.medicineCard {
+  background: $color-bg-gray;
+  border-radius: $radius-md;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+  border-left: 6rpx solid $color-primary;
+
+  &:last-of-type {
+    margin-bottom: $spacing-md;
+  }
+}
+
+.medicineCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-sm;
+}
+
+.medicineName {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.verifiedBadge {
+  font-size: 22rpx;
+  color: #fff;
+  background: $color-success;
+  padding: 4rpx 16rpx;
+  border-radius: $radius-round;
+}
+
+.medicineInfoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6rpx 0;
+}
+
+.medicineLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.medicineValue {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+}
+
+.expiryWarn {
+  color: $color-warning;
+}
+
+.remainingLow {
+  color: $color-error;
+}
+
+.addMedicineBtn {
+  @include button-reset;
+  width: 100%;
+  height: 72rpx;
+  background: $color-primary-bg;
+  color: $color-primary;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  border: 2rpx dashed $color-primary-light;
+  margin-top: $spacing-sm;
+}

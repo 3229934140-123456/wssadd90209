@@ -108,6 +108,9 @@ $color-text-placeholder: $color-text-tertiary;
   border-radius: $radius-md;
   overflow: hidden;
   background: #000;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .annotateImage {
@@ -122,6 +125,7 @@ $color-text-placeholder: $color-text-tertiary;
   display: flex;
   flex-direction: column;
   align-items: center;
+  pointer-events: auto;
 }
 
 .markerDot {
