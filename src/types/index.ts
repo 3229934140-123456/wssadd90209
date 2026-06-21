@@ -48,10 +48,13 @@ export interface Medicine {
   batchNumber: string
   expiryDate: string
   specification: string
-  totalQuantity: number
-  usedQuantity: number
-  remainingQuantity: number
+  totalDose: number
+  usedDose: number
+  remainingDose: number
+  unit: string
   scanTime: string
+  verified: boolean
+  verifiedAt: string
 }
 
 export interface InjectionPhoto {
@@ -118,6 +121,9 @@ export interface ExportRecord {
   customerId: string
   customerName: string
   injectionRecordId: string
+  projectType: InjectionProjectType
+  projectName: string
+  injectionDate: string
   exportTime: string
   exportType: 'pdf' | 'image'
   status: 'pending' | 'success' | 'failed'

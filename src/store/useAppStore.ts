@@ -153,17 +153,31 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (currentInjection) {
       const updated = {
         ...currentInjection,
-        medicines: currentInjection.medicines.map(m =>
-          m.id === medicineId ? { ...m, ...updates } : m
-        ),
+        medicines: currentInjection.medicines.map(m => {
+          if (m.id === medicineId) {
+            const merged = { ...m, ...updates }
+            if (updates.usedDose !== undefined) {
+              merged.remainingDose = merged.totalDose - merged.usedDose
+            }
+            return merged
+          }
+          return m
+        }),
         updateTime: new Date().toISOString()
       }
       console.log('[Store] Updated medicine in injection:', medicineId)
       set({ currentInjection: updated })
     }
-    const updatedMedicines = medicines.map(m =>
-      m.id === medicineId ? { ...m, ...updates } : m
-    )
+    const updatedMedicines = medicines.map(m => {
+      if (m.id === medicineId) {
+        const merged = { ...m, ...updates }
+        if (updates.usedDose !== undefined) {
+          merged.remainingDose = merged.totalDose - merged.usedDose
+        }
+        return merged
+      }
+      return m
+    })
     console.log('[Store] Updated medicine globally:', medicineId)
     set({ medicines: updatedMedicines })
   },

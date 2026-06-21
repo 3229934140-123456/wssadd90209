@@ -43,7 +43,7 @@ const InjectionDetailPage: React.FC = () => {
     )
   }
 
-  const totalDose = record.points.reduce((sum: number, p: any) => sum + (p.dose || 0) * (p.needleCount || 0), 0)
+  const totalDose = record.points.reduce((sum: number, p: any) => sum + (p.totalDose || 0), 0)
   const totalNeedles = record.points.reduce((sum: number, p: any) => sum + (p.needleCount || 0), 0)
   const pointConfig = FACIAL_POINTS_CONFIG[record.projectType] || []
 
@@ -111,7 +111,7 @@ const InjectionDetailPage: React.FC = () => {
           <View className={styles.infoCardLabel}>总针数</View>
         </View>
         <View className={styles.infoCard}>
-          <View className={styles.infoCardValue}>{totalDose.toFixed(2)}{record.points[0]?.unit || 'ml'}</View>
+          <View className={styles.infoCardValue}>{totalDose.toFixed(2)}{record.projectType === 'botox' ? 'U' : 'ml'}</View>
           <View className={styles.infoCardLabel}>总剂量</View>
         </View>
         <View className={styles.infoCard}>
@@ -125,19 +125,11 @@ const InjectionDetailPage: React.FC = () => {
         <View className={styles.card}>
           <View className={styles.infoRow}>
             <Text className={styles.infoLabel}>注射日期</Text>
-            <Text className={styles.infoValue}>{formatDateTime(record.injectionDate)}</Text>
+            <Text className={styles.infoValue}>{formatDateTime(record.createTime)}</Text>
           </View>
           <View className={styles.infoRow}>
             <Text className={styles.infoLabel}>执行医生</Text>
             <Text className={styles.infoValue}>{record.doctorName}</Text>
-          </View>
-          <View className={styles.infoRow}>
-            <Text className={styles.infoLabel}>操作护士</Text>
-            <Text className={styles.infoValue}>{record.nurseName}</Text>
-          </View>
-          <View className={styles.infoRow}>
-            <Text className={styles.infoLabel}>机构名称</Text>
-            <Text className={styles.infoValue}>{record.clinicName}</Text>
           </View>
         </View>
       </View>
@@ -152,11 +144,11 @@ const InjectionDetailPage: React.FC = () => {
               if (!config) return null
               return (
                 <View
-                  key={point.id}
+                  key={point.pointId}
                   style={{
                     position: 'absolute',
-                    left: `${config.position.x}%`,
-                    top: `${config.position.y}%`,
+                    left: `${config.x}%`,
+                    top: `${config.y}%`,
                     transform: 'translate(-50%, -50%)',
                     width: '24rpx',
                     height: '24rpx',
@@ -179,7 +171,7 @@ const InjectionDetailPage: React.FC = () => {
                     fontSize: '20rpx',
                     whiteSpace: 'nowrap'
                   }}>
-                    {point.pointName} {point.dose * point.needleCount}{point.unit}
+                    {point.pointName} {point.totalDose}{record.projectType === 'botox' ? 'U' : 'ml'}
                   </View>
                 </View>
               )
@@ -204,27 +196,22 @@ const InjectionDetailPage: React.FC = () => {
         <View className={styles.card}>
           <View className={styles.pointsList}>
             {record.points.map((point: any) => (
-              <View key={point.id} className={styles.pointItem}>
+              <View key={point.pointId} className={styles.pointItem}>
                 <View className={styles.pointHeader}>
                   <View className={styles.pointName}>
                     <View className={styles.pointColor} style={{ background: point.color }}></View>
                     {point.pointName}
                   </View>
                   <Text className={styles.pointDose}>
-                    总计 {(point.dose * point.needleCount).toFixed(2)}{point.unit}
+                    总计 {point.totalDose.toFixed(2)}{record.projectType === 'botox' ? 'U' : 'ml'}
                   </Text>
                 </View>
                 <View className={styles.pointDetails}>
                   <Text className={styles.pointDetail}>侧别：{getSideText(point.side)}</Text>
                   <Text className={styles.pointDetail}>层次：{getDepthText(point.depth)}</Text>
                   <Text className={styles.pointDetail}>针数：{point.needleCount}针</Text>
-                  <Text className={styles.pointDetail}>单点剂量：{point.dose}{point.unit}</Text>
+                  <Text className={styles.pointDetail}>单点剂量：{point.singleDose}{record.projectType === 'botox' ? 'U' : 'ml'}</Text>
                 </View>
-                {point.notes && (
-                  <View style={{ marginTop: '16rpx', fontSize: '24rpx', color: '#86909C' }}>
-                    备注：{point.notes}
-                  </View>
-                )}
               </View>
             ))}
           </View>
@@ -245,7 +232,7 @@ const InjectionDetailPage: React.FC = () => {
               <View className={styles.medicineInfo}>
                 <Text>批号：{medicine.batchNumber}</Text>
                 <Text>有效期：{formatDate(medicine.expiryDate)}</Text>
-                <Text>剩余量：{(medicine.totalDose - medicine.usedDose).toFixed(2)}{medicine.unit}</Text>
+                <Text>剩余量：{medicine.remainingDose.toFixed(2)}{medicine.unit}</Text>
               </View>
             </View>
           ))}
@@ -257,13 +244,37 @@ const InjectionDetailPage: React.FC = () => {
           <Text className={styles.sectionTitle}>术中照片</Text>
           <View className={styles.photoGrid}>
             {record.photos.map((photo: any, index: number) => (
-              <View key={index} className={styles.photoItem}>
+              <View key={index} className={styles.photoItem} style={{ position: 'relative' }}>
                 <Image
                   className={styles.photoImage}
                   src={photo.url}
                   mode='aspectFill'
                 />
-                <View className={styles.photoLabel}>{photo.label}</View>
+                {photo.markers && photo.markers.map((marker: any) => (
+                  <View
+                    key={marker.id}
+                    style={{
+                      position: 'absolute',
+                      left: `${marker.x}%`,
+                      top: `${marker.y}%`,
+                      transform: 'translate(-50%, -50%)',
+                      zIndex: 10
+                    }}
+                  >
+                    <View style={{
+                      width: '20rpx',
+                      height: '20rpx',
+                      borderRadius: '50%',
+                      background: marker.color,
+                      border: '2rpx solid #fff',
+                      boxShadow: '0 2rpx 6rpx rgba(0,0,0,0.3)'
+                    }} />
+                  </View>
+                ))}
+                <View className={styles.photoLabel}>
+                  {photo.type === 'front' ? '正面' : photo.type === 'side_left' ? '左侧面' : photo.type === 'side_right' ? '右侧面' : '照片'}
+                  {photo.markers?.length > 0 && ` · ${photo.markers.length}个标记`}
+                </View>
               </View>
             ))}
           </View>
@@ -283,7 +294,7 @@ const InjectionDetailPage: React.FC = () => {
               <View className={styles.signatureInfo}>
                 <Text className={styles.doctorName}>{record.doctorName}</Text>
                 <Text className={styles.signatureTime}>
-                  签名时间：{formatDateTime(record.signatureTime || record.injectionDate)}
+                  签名时间：{formatDateTime(record.signatureTime || record.createTime)}
                 </Text>
               </View>
             </View>

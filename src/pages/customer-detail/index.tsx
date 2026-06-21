@@ -77,7 +77,6 @@ const CustomerDetailPage: React.FC = () => {
           <View className={styles.customerInfo}>
             <View className={styles.nameRow}>
               <Text className={styles.customerName}>{customer.name}</Text>
-              {customer.isVip && <View className={styles.vipTag}>VIP</View>}
             </View>
             <Text className={styles.baseInfo}>
               {customer.gender === 'female' ? '女' : '男'} · {customer.age}岁
@@ -93,16 +92,16 @@ const CustomerDetailPage: React.FC = () => {
       <View className={styles.section}>
         <View className={styles.statRow}>
           <View className={styles.statItem}>
-            <View className={styles.statValue}>{customer.visitCount || 0}</View>
+            <View className={styles.statValue}>{customer.totalVisits || 0}</View>
             <View className={styles.statLabel}>就诊次数</View>
           </View>
           <View className={styles.statItem}>
-            <View className={styles.statValue}>{customer.lastVisit ? formatDate(customer.lastVisit) : '-'}</View>
+            <View className={styles.statValue}>{customer.lastVisitDate ? formatDate(customer.lastVisitDate) : '-'}</View>
             <View className={styles.statLabel}>上次就诊</View>
           </View>
           <View className={styles.statItem}>
-            <View className={styles.statValue}>¥{customer.totalAmount || 0}</View>
-            <View className={styles.statLabel}>累计消费</View>
+            <View className={styles.statValue}>{customer.medicalHistory && customer.medicalHistory.length > 0 ? customer.medicalHistory.join('、') : '无'}</View>
+            <View className={styles.statLabel}>病史</View>
           </View>
         </View>
       </View>
@@ -111,22 +110,18 @@ const CustomerDetailPage: React.FC = () => {
         <Text className={styles.sectionTitle}>基本信息</Text>
         <View className={styles.infoCard}>
           <View className={styles.infoRow}>
-            <Text className={styles.infoLabel}>身份证号</Text>
-            <Text className={styles.infoValue}>{customer.idCard}</Text>
+            <Text className={styles.infoLabel}>建档日期</Text>
+            <Text className={styles.infoValue}>{formatDate(customer.createTime)}</Text>
           </View>
           <View className={styles.infoRow}>
             <Text className={styles.infoLabel}>联系电话</Text>
             <Text className={styles.infoValue}>{customer.phone}</Text>
           </View>
           <View className={styles.infoRow}>
-            <Text className={styles.infoLabel}>出生日期</Text>
-            <Text className={styles.infoValue}>{formatDate(customer.birthday)}</Text>
-          </View>
-          <View className={styles.infoRow}>
             <Text className={styles.infoLabel}>过敏史</Text>
-            {customer.allergies && customer.allergies.length > 0 ? (
+            {customer.allergyHistory && customer.allergyHistory.length > 0 ? (
               <View className={styles.allergyTag}>
-                {customer.allergies.join('、')}
+                {customer.allergyHistory.join('、')}
               </View>
             ) : (
               <Text className={styles.infoValue}>无</Text>
@@ -161,7 +156,7 @@ const CustomerDetailPage: React.FC = () => {
                 <Text className={styles.projectName}>
                   {getProjectTypeText(record.projectType)}
                 </Text>
-                <Text className={styles.historyDate}>{formatDate(record.injectionDate)}</Text>
+                <Text className={styles.historyDate}>{formatDate(record.createTime)}</Text>
               </View>
               <View className={styles.historyDetail}>
                 点位：{record.points.map(p => p.pointName).join('、')}
@@ -172,8 +167,8 @@ const CustomerDetailPage: React.FC = () => {
               <View className={styles.historyInfo}>
                 <Text className={styles.historyDoctor}>医生：{record.doctorName}</Text>
                 <Text className={styles.totalAmount}>
-                  总剂量：{record.points.reduce((sum, p) => sum + (p.dose || 0) * (p.needleCount || 0), 0)}
-                  {record.points[0]?.unit || 'ml'}
+                  总剂量：{record.points.reduce((sum, p) => sum + (p.totalDose || 0), 0)}
+                  {record.projectType === 'botox' ? 'U' : 'ml'}
                 </Text>
               </View>
             </View>

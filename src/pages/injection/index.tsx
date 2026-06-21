@@ -134,23 +134,35 @@ const InjectionPage: React.FC = () => {
       Taro.showToast({ title: '请先选择项目和点位', icon: 'none' })
       return
     }
-    Taro.chooseImage({
-      count: 3,
-      sizeType: ['compressed'],
-      sourceType: ['camera', 'album'],
+    Taro.showActionSheet({
+      itemList: ['拍摄正面照', '拍摄左侧面照', '拍摄右侧面照', '从相册选择'],
       success: (res) => {
-        const photos = res.tempFilePaths.map((path, index) => ({
-          id: `photo_${Date.now()}_${index}`,
-          type: ['front', 'side_left', 'side_right'][index] as const,
-          url: path,
-          markers: [],
-          createTime: new Date().toISOString()
-        }))
-        photos.forEach(photo => addPhoto(photo))
-        Taro.showToast({ title: `已添加 ${photos.length} 张照片`, icon: 'success' })
-      },
-      fail: (err) => {
-        console.error('[Injection] Take photo error:', err)
+        const typeMap = ['front', 'side_left', 'side_right', 'front'] as const
+        const photoType = typeMap[res.tapIndex]
+        const sourceType = res.tapIndex === 3 ? ['album'] : ['camera']
+
+        Taro.chooseImage({
+          count: 1,
+          sizeType: ['compressed'],
+          sourceType: sourceType as any,
+          success: (imgRes) => {
+            const photoId = `photo_${Date.now()}`
+            const photoUrl = imgRes.tempFilePaths[0]
+            addPhoto({
+              id: photoId,
+              type: photoType,
+              url: photoUrl,
+              markers: [],
+              createTime: new Date().toISOString()
+            })
+            Taro.navigateTo({
+              url: `/pages/photo-annotate/index?photoId=${photoId}&photoUrl=${encodeURIComponent(photoUrl)}&photoType=${photoType}`
+            })
+          },
+          fail: (err) => {
+            console.error('[Injection] Take photo error:', err)
+          }
+        })
       }
     })
   }
@@ -162,7 +174,19 @@ const InjectionPage: React.FC = () => {
       return
     }
     if (currentInjection.medicines.length === 0) {
-      Taro.showToast({ title: '请先核验药品', icon: 'none' })
+      Taro.showModal({
+        title: '药品核验提醒',
+        content: '当前尚未核验药品，是否仍要进入签名？',
+        confirmText: '继续签名',
+        cancelText: '去核验',
+        success: (res) => {
+          if (res.confirm) {
+            Taro.navigateTo({ url: '/pages/signature/index' })
+          } else {
+            Taro.navigateTo({ url: '/pages/medicine-verify/index' })
+          }
+        }
+      })
       return
     }
     Taro.navigateTo({ url: '/pages/signature/index' })

@@ -8,7 +8,8 @@ export default defineAppConfig({
     'pages/customer-detail/index',
     'pages/injection-detail/index',
     'pages/medicine-verify/index',
-    'pages/signature/index'
+    'pages/signature/index',
+    'pages/photo-annotate/index'
   ],
   window: {
     backgroundTextStyle: 'light',

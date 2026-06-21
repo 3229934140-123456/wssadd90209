@@ -16,12 +16,18 @@ const MedicineVerifyPage: React.FC = () => {
   const [expiryDate, setExpiryDate] = useState('')
   const [usedDose, setUsedDose] = useState('')
   const [manualInput, setManualInput] = useState(false)
+  const [newMedicineName, setNewMedicineName] = useState('')
+  const [newMedicineBrand, setNewMedicineBrand] = useState('')
+  const [newMedicineSpec, setNewMedicineSpec] = useState('')
+  const [newMedicineTotalDose, setNewMedicineTotalDose] = useState('')
+  const [newMedicineUnit, setNewMedicineUnit] = useState('ml')
 
   const {
     currentInjection,
     currentCustomer,
     medicines,
     setMedicines,
+    addMedicine,
     updateMedicine,
     setInjectionRecords
   } = useAppStore()
@@ -42,7 +48,7 @@ const MedicineVerifyPage: React.FC = () => {
 
   const totalUsed = displayMedicines.reduce((sum: number, m: Medicine) => sum + (m.usedDose || 0), 0)
   const totalRemaining = displayMedicines.reduce(
-    (sum: number, m: Medicine) => sum + ((m.totalDose || 0) - (m.usedDose || 0)),
+    (sum: number, m: Medicine) => sum + (m.remainingDose || 0),
     0
   )
   const verifiedCount = displayMedicines.filter((m: Medicine) => m.verified).length
@@ -50,6 +56,11 @@ const MedicineVerifyPage: React.FC = () => {
   const handleScan = (medicineId: string) => {
     console.log('[MedicineVerify] Scan medicine:', medicineId)
     setSelectedMedicineId(medicineId)
+    if (medicineId === 'new') {
+      setShowInputModal(true)
+      setManualInput(true)
+      return
+    }
     Taro.showActionSheet({
       itemList: ['扫码录入', '手动输入'],
       success: (res) => {
@@ -116,6 +127,43 @@ const MedicineVerifyPage: React.FC = () => {
 
   const handleSaveMedicine = () => {
     if (!selectedMedicineId) return
+
+    if (selectedMedicineId === 'new') {
+      if (!newMedicineName || !newMedicineTotalDose || !newMedicineUnit) {
+        Taro.showToast({ title: '请填写药品名称、总量和单位', icon: 'none' })
+        return
+      }
+      const totalDoseNum = parseFloat(newMedicineTotalDose) || 0
+      const usedDoseNum = parseFloat(usedDose) || 0
+      const newMedicine: Medicine = {
+        id: `med_${Date.now()}`,
+        name: newMedicineName,
+        brand: newMedicineBrand,
+        batchNumber,
+        expiryDate,
+        specification: newMedicineSpec,
+        totalDose: totalDoseNum,
+        usedDose: usedDoseNum,
+        remainingDose: totalDoseNum - usedDoseNum,
+        unit: newMedicineUnit,
+        scanTime: new Date().toISOString(),
+        verified: false,
+        verifiedAt: ''
+      }
+      addMedicine(newMedicine)
+      setShowInputModal(false)
+      setNewMedicineName('')
+      setNewMedicineBrand('')
+      setNewMedicineSpec('')
+      setNewMedicineTotalDose('')
+      setNewMedicineUnit('ml')
+      setBatchNumber('')
+      setExpiryDate('')
+      setUsedDose('')
+      setSelectedMedicineId(null)
+      Taro.showToast({ title: '添加成功', icon: 'success' })
+      return
+    }
 
     if (!batchNumber || !expiryDate) {
       Taro.showToast({ title: '请填写批号和有效期', icon: 'none' })
@@ -280,10 +328,10 @@ const MedicineVerifyPage: React.FC = () => {
                   </Text>
                   <Text
                     className={classnames(styles.remainingDose, {
-                      [styles.remainingWarning]: (medicine.totalDose - (medicine.usedDose || 0)) < 0.5
+                      [styles.remainingWarning]: (medicine.remainingDose || 0) < 0.5
                     })}
                   >
-                    剩余：{(medicine.totalDose - (medicine.usedDose || 0)).toFixed(2)} {medicine.unit}
+                    剩余：{(medicine.remainingDose || 0).toFixed(2)} {medicine.unit}
                   </Text>
                 </View>
                 <View>
@@ -340,8 +388,59 @@ const MedicineVerifyPage: React.FC = () => {
         <View className={styles.inputModal} onClick={() => setShowInputModal(false)}>
           <View className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <Text className={styles.modalTitle}>
-              {manualInput ? '手动输入药品信息' : '录入药品信息'}
+              {selectedMedicineId === 'new' ? '手动添加药品' : manualInput ? '手动输入药品信息' : '录入药品信息'}
             </Text>
+
+            {selectedMedicineId === 'new' && (
+              <>
+                <View className={styles.inputItem}>
+                  <Text className={styles.inputLabel}>药品名称</Text>
+                  <Input
+                    className={styles.inputField}
+                    placeholder='请输入药品名称'
+                    value={newMedicineName}
+                    onInput={(e) => setNewMedicineName(e.detail.value)}
+                  />
+                </View>
+                <View className={styles.inputItem}>
+                  <Text className={styles.inputLabel}>品牌</Text>
+                  <Input
+                    className={styles.inputField}
+                    placeholder='请输入品牌'
+                    value={newMedicineBrand}
+                    onInput={(e) => setNewMedicineBrand(e.detail.value)}
+                  />
+                </View>
+                <View className={styles.inputItem}>
+                  <Text className={styles.inputLabel}>规格</Text>
+                  <Input
+                    className={styles.inputField}
+                    placeholder='请输入规格'
+                    value={newMedicineSpec}
+                    onInput={(e) => setNewMedicineSpec(e.detail.value)}
+                  />
+                </View>
+                <View className={styles.inputItem}>
+                  <Text className={styles.inputLabel}>总量</Text>
+                  <Input
+                    className={styles.inputField}
+                    type='digit'
+                    placeholder='请输入总量'
+                    value={newMedicineTotalDose}
+                    onInput={(e) => setNewMedicineTotalDose(e.detail.value)}
+                  />
+                </View>
+                <View className={styles.inputItem}>
+                  <Text className={styles.inputLabel}>单位</Text>
+                  <Input
+                    className={styles.inputField}
+                    placeholder='请输入单位'
+                    value={newMedicineUnit}
+                    onInput={(e) => setNewMedicineUnit(e.detail.value)}
+                  />
+                </View>
+              </>
+            )}
 
             <View className={styles.inputItem}>
               <Text className={styles.inputLabel}>产品批号</Text>

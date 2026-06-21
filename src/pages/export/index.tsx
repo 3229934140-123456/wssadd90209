@@ -6,7 +6,7 @@ import styles from './index.module.scss'
 import { useAppStore } from '@/store/useAppStore'
 import { mockExportRecords } from '@/data/mockInjections'
 import { formatDate, formatDateTime, getProjectTypeText } from '@/utils/date'
-import type { ExportRecord } from '@/types'
+import type { ExportRecord, InjectionRecord } from '@/types'
 
 interface ExportAction {
   id: string
@@ -58,8 +58,12 @@ const ExportPage: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState('all')
   const [showSelectModal, setShowSelectModal] = useState(false)
   const [selectedRecords, setSelectedRecords] = useState<string[]>([])
+  const [showSingleSelectModal, setShowSingleSelectModal] = useState(false)
+  const [singleExportType, setSingleExportType] = useState<'pdf' | 'image'>('pdf')
+  const [showPreviewModal, setShowPreviewModal] = useState(false)
+  const [previewRecord, setPreviewRecord] = useState<InjectionRecord | null>(null)
   const {
-    setExportRecords, exportRecords, injectionRecords
+    setExportRecords, exportRecords, injectionRecords, addExportRecord
   } = useAppStore()
 
   useEffect(() => {
@@ -82,12 +86,20 @@ const ExportPage: React.FC = () => {
 
     switch (actionId) {
       case 'single_pdf':
+        if (injectionRecords.length === 0) {
+          Taro.showToast({ title: '暂无注射记录可导出', icon: 'none' })
+          return
+        }
+        setSingleExportType('pdf')
+        setShowSingleSelectModal(true)
+        break
       case 'single_image':
         if (injectionRecords.length === 0) {
           Taro.showToast({ title: '暂无注射记录可导出', icon: 'none' })
           return
         }
-        Taro.showToast({ title: '请选择要导出的记录', icon: 'none' })
+        setSingleExportType('image')
+        setShowSingleSelectModal(true)
         break
       case 'batch_pdf':
         if (injectionRecords.length === 0) {
@@ -108,8 +120,13 @@ const ExportPage: React.FC = () => {
   }
 
   const handlePreview = (record: ExportRecord) => {
-    console.log('[Export] Preview record:', record.id)
-    Taro.showToast({ title: '预览功能开发中', icon: 'none' })
+    const inj = injectionRecords.find(i => i.id === record.injectionRecordId)
+    if (!inj) {
+      Taro.showToast({ title: '未找到对应的注射记录', icon: 'none' })
+      return
+    }
+    setPreviewRecord(inj)
+    setShowPreviewModal(true)
   }
 
   const handleToggleSelect = (recordId: string) => {
@@ -129,13 +146,49 @@ const ExportPage: React.FC = () => {
     }
   }
 
+  const handleSingleSelect = (inj: InjectionRecord) => {
+    const newRecord: ExportRecord = {
+      id: `exp_${Date.now()}`,
+      customerId: inj.customerId,
+      customerName: inj.customerName,
+      injectionRecordId: inj.id,
+      projectType: inj.projectType,
+      projectName: inj.projectName,
+      injectionDate: inj.createTime,
+      exportTime: new Date().toISOString(),
+      exportType: singleExportType,
+      status: 'success'
+    }
+    addExportRecord(newRecord)
+    setShowSingleSelectModal(false)
+    Taro.showToast({ title: `${inj.customerName}的记录导出成功`, icon: 'success' })
+  }
+
   const handleConfirmBatchExport = () => {
     console.log('[Export] Batch export records:', selectedRecords)
     if (selectedRecords.length === 0) {
       Taro.showToast({ title: '请至少选择一条记录', icon: 'none' })
       return
     }
-    Taro.showToast({ title: `正在导出 ${selectedRecords.length} 条记录...`, icon: 'none' })
+    selectedRecords.forEach(recordId => {
+      const inj = injectionRecords.find(i => i.id === recordId)
+      if (inj) {
+        const newRecord: ExportRecord = {
+          id: `exp_${Date.now()}_${inj.id}`,
+          customerId: inj.customerId,
+          customerName: inj.customerName,
+          injectionRecordId: inj.id,
+          projectType: inj.projectType,
+          projectName: inj.projectName,
+          injectionDate: inj.createTime,
+          exportTime: new Date().toISOString(),
+          exportType: 'pdf',
+          status: 'success'
+        }
+        addExportRecord(newRecord)
+      }
+    })
+    Taro.showToast({ title: `成功导出 ${selectedRecords.length} 条记录`, icon: 'success' })
     setShowSelectModal(false)
     setSelectedRecords([])
   }
@@ -160,6 +213,16 @@ const ExportPage: React.FC = () => {
       failed: '导出失败'
     }
     return textMap[status] || '未知状态'
+  }
+
+  const getDepthText = (depth: string) => {
+    const map: Record<string, string> = { superficial: '浅层', medium: '中层', deep: '深层' }
+    return map[depth] || depth
+  }
+
+  const getSideText = (side: string) => {
+    const map: Record<string, string> = { left: '左', right: '右', bilateral: '双侧', center: '中央' }
+    return map[side] || side
   }
 
   return (
@@ -261,6 +324,38 @@ const ExportPage: React.FC = () => {
         )}
       </View>
 
+      {showSingleSelectModal && (
+        <View className={styles.selectModal} onClick={() => setShowSingleSelectModal(false)}>
+          <View className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <Text className={styles.modalTitle}>选择要导出的注射记录</Text>
+
+            {injectionRecords.map(record => (
+              <View
+                key={record.id}
+                className={styles.selectItem}
+                onClick={() => handleSingleSelect(record)}
+              >
+                <View className={styles.selectInfo}>
+                  <Text className={styles.selectName}>{record.customerName}</Text>
+                  <Text className={styles.selectDesc}>
+                    {getProjectTypeText(record.projectType)} · {formatDate(record.createTime)}
+                  </Text>
+                </View>
+              </View>
+            ))}
+
+            <View className={styles.modalActions}>
+              <Button
+                className={classnames(styles.modalBtn, styles.btnSecondary)}
+                onClick={() => setShowSingleSelectModal(false)}
+              >
+                取消
+              </Button>
+            </View>
+          </View>
+        </View>
+      )}
+
       {showSelectModal && (
         <View className={styles.selectModal} onClick={() => setShowSelectModal(false)}>
           <View className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
@@ -294,7 +389,7 @@ const ExportPage: React.FC = () => {
                 <View className={styles.selectInfo}>
                   <Text className={styles.selectName}>{record.customerName}</Text>
                   <Text className={styles.selectDesc}>
-                    {getProjectTypeText(record.projectType)} · {formatDate(record.injectionDate)}
+                    {getProjectTypeText(record.projectType)} · {formatDate(record.createTime)}
                   </Text>
                 </View>
               </View>
@@ -312,6 +407,89 @@ const ExportPage: React.FC = () => {
                 onClick={handleConfirmBatchExport}
               >
                 批量导出 ({selectedRecords.length})
+              </Button>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {showPreviewModal && previewRecord && (
+        <View className={styles.previewModal} onClick={() => setShowPreviewModal(false)}>
+          <View className={styles.previewContent} onClick={(e) => e.stopPropagation()}>
+            <Text className={styles.modalTitle}>预览 - {previewRecord.customerName}</Text>
+
+            <View className={styles.previewSection}>
+              <Text className={styles.previewLabel}>项目类型</Text>
+              <Text className={styles.previewValue}>{getProjectTypeText(previewRecord.projectType)} - {previewRecord.projectName}</Text>
+            </View>
+
+            <View className={styles.previewSection}>
+              <Text className={styles.previewLabel}>注射日期</Text>
+              <Text className={styles.previewValue}>{formatDate(previewRecord.createTime)}</Text>
+            </View>
+
+            <View className={styles.previewSection}>
+              <Text className={styles.previewLabel}>点位列表</Text>
+              {previewRecord.points.length === 0 ? (
+                <Text className={styles.previewValue}>暂无点位</Text>
+              ) : (
+                previewRecord.points.map((pt, idx) => (
+                  <View key={idx} className={styles.previewPoint}>
+                    <Text>{pt.pointName} · {getSideText(pt.side)} · {getDepthText(pt.depth)} · {pt.totalDose}{pt.singleDose > 0 ? ` (单点${pt.singleDose})` : ''}</Text>
+                  </View>
+                ))
+              )}
+            </View>
+
+            <View className={styles.previewSection}>
+              <Text className={styles.previewLabel}>药品列表</Text>
+              {previewRecord.medicines.length === 0 ? (
+                <Text className={styles.previewValue}>暂无药品</Text>
+              ) : (
+                previewRecord.medicines.map((med) => (
+                  <View key={med.id} className={styles.previewMedicine}>
+                    <Text>{med.name} · 批号{med.batchNumber} · 用量{med.usedDose}{med.unit} · 剩余{med.remainingDose}{med.unit}</Text>
+                  </View>
+                ))
+              )}
+            </View>
+
+            {previewRecord.photos.length > 0 && (
+              <View className={styles.previewSection}>
+                <Text className={styles.previewLabel}>照片</Text>
+                <View style={{ display: 'flex', flexWrap: 'wrap', gap: '16rpx' }}>
+                  {previewRecord.photos.map((photo) => (
+                    <Image
+                      key={photo.id}
+                      className={styles.previewPhoto}
+                      src={photo.url}
+                      mode='aspectFill'
+                    />
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {previewRecord.doctorSignature && (
+              <View className={styles.previewSection}>
+                <Text className={styles.previewLabel}>签名</Text>
+                <Text className={styles.previewValue}>{previewRecord.doctorName} · {previewRecord.signatureTime ? formatDateTime(previewRecord.signatureTime) : ''}</Text>
+              </View>
+            )}
+
+            {previewRecord.abnormalNotes && (
+              <View className={styles.previewSection}>
+                <Text className={styles.previewLabel}>异常备注</Text>
+                <Text className={styles.previewValue}>{previewRecord.abnormalNotes}</Text>
+              </View>
+            )}
+
+            <View className={styles.modalActions}>
+              <Button
+                className={classnames(styles.modalBtn, styles.btnPrimary)}
+                onClick={() => setShowPreviewModal(false)}
+              >
+                关闭
               </Button>
             </View>
           </View>

@@ -1,0 +1,237 @@
+@use '@/styles/variables.scss' as *;
+
+$color-text-placeholder: $color-text-tertiary;
+
+.page {
+  min-height: 100vh;
+  background: $color-bg-page;
+  padding-bottom: 160rpx;
+}
+
+.header {
+  background: $color-primary;
+  padding: 40rpx $page-padding 32rpx;
+  color: #fff;
+}
+
+.title {
+  display: block;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  margin-bottom: 8rpx;
+}
+
+.subtitle {
+  display: block;
+  font-size: $font-size-sm;
+  opacity: 0.85;
+}
+
+.toolBar {
+  background: #fff;
+  padding: 24rpx $page-padding;
+  margin-bottom: 16rpx;
+}
+
+.colorRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.toolLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-right: 24rpx;
+  min-width: 120rpx;
+}
+
+.colorOptions {
+  display: flex;
+  gap: 20rpx;
+}
+
+.colorDot {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  border: 4rpx solid transparent;
+  transition: border-color $transition-fast;
+}
+
+.colorActive {
+  border-color: $color-primary;
+  box-shadow: 0 0 0 4rpx rgba($color-primary, 0.2);
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+}
+
+.labelBtn {
+  @include button-reset;
+  font-size: $font-size-sm;
+  color: $color-primary;
+  background: rgba($color-primary, 0.08);
+  padding: 8rpx 24rpx;
+  border-radius: $radius-round;
+}
+
+.labelPicker {
+  background: #fff;
+  padding: 16rpx $page-padding;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+  border-top: 1rpx solid $color-divider;
+}
+
+.labelOption {
+  @include button-reset;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  background: $color-bg-page;
+  padding: 12rpx 24rpx;
+  border-radius: $radius-round;
+}
+
+.labelActive {
+  background: $color-primary;
+  color: #fff;
+}
+
+.imageContainer {
+  position: relative;
+  margin: 0 $page-padding;
+  border-radius: $radius-md;
+  overflow: hidden;
+  background: #000;
+}
+
+.annotateImage {
+  width: 100%;
+  display: block;
+}
+
+.marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.markerDot {
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 50%;
+  border: 3rpx solid #fff;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.4);
+}
+
+.markerLabel {
+  margin-top: 4rpx;
+  padding: 2rpx 12rpx;
+  border-radius: $radius-xs;
+  font-size: 20rpx;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.markerList {
+  background: #fff;
+  margin: 16rpx $page-padding;
+  padding: 24rpx;
+  border-radius: $radius-md;
+}
+
+.listTitle {
+  display: block;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  margin-bottom: 16rpx;
+}
+
+.emptyHint {
+  display: block;
+  font-size: $font-size-sm;
+  color: $color-text-placeholder;
+  text-align: center;
+  padding: 24rpx 0;
+}
+
+.markerItem {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 0;
+  border-bottom: 1rpx solid $color-divider;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.markerColor {
+  width: 24rpx;
+  height: 24rpx;
+  border-radius: 50%;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+}
+
+.markerName {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  flex: 1;
+}
+
+.markerPos {
+  font-size: $font-size-xs;
+  color: $color-text-placeholder;
+  margin-right: 16rpx;
+}
+
+.removeBtn {
+  @include button-reset;
+  width: 48rpx;
+  height: 48rpx;
+  font-size: $font-size-lg;
+  color: $color-text-placeholder;
+}
+
+.bottomBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  padding: 16rpx $page-padding;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  background: #fff;
+  box-shadow: $shadow-float;
+  gap: 24rpx;
+  z-index: 100;
+}
+
+.bottomBtn {
+  flex: 1;
+  height: $button-height-lg;
+  border-radius: $radius-md;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-medium;
+  @include button-reset;
+}
+
+.btnSecondary {
+  background: $color-bg-page;
+  color: $color-text-secondary;
+}
+
+.btnPrimary {
+  background: $color-primary;
+  color: #fff;
+}

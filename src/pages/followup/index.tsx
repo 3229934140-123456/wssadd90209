@@ -6,6 +6,7 @@ import styles from './index.module.scss'
 import { useAppStore } from '@/store/useAppStore'
 import { mockInjectionRecords, mockFollowupRecords } from '@/data/mockInjections'
 import { formatDate, formatDateTime, getProjectTypeText } from '@/utils/date'
+import { FACIAL_POINTS_CONFIG } from '@/types'
 import type { PostopReminder } from '@/types'
 
 const REMINDER_ICONS: Record<string, string> = {
@@ -18,6 +19,9 @@ const REMINDER_ICONS: Record<string, string> = {
 
 const FollowupPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'reminders' | 'followup'>('reminders')
+  const [selectedHistoryId, setSelectedHistoryId] = useState('')
+  const [showComparison, setShowComparison] = useState(false)
+  const [newPhotoUrl, setNewPhotoUrl] = useState('')
   const {
     currentInjection,
     setInjectionRecords,
@@ -79,8 +83,11 @@ const FollowupPage: React.FC = () => {
   }
 
   const handleViewComparison = (record: any) => {
-    console.log('[Followup] View comparison for:', record.customerName)
-    Taro.showToast({ title: '复诊对比功能开发中', icon: 'none' })
+    const inj = injectionRecords.find(i => i.id === record.injectionRecordId)
+    if (inj) {
+      setSelectedHistoryId(inj.id)
+    }
+    setShowComparison(true)
   }
 
   const handleAddSupplment = (record: any) => {
@@ -100,6 +107,43 @@ const FollowupPage: React.FC = () => {
       }
     })
   }
+
+  const handleChooseNewPhoto = () => {
+    Taro.chooseImage({
+      count: 1,
+      sizeType: ['compressed'],
+      sourceType: ['album', 'camera'],
+      success: (res) => {
+        setNewPhotoUrl(res.tempFilePaths[0])
+      }
+    })
+  }
+
+  const handleStartComparison = () => {
+    if (!selectedHistoryId) {
+      Taro.showToast({ title: '请先选择历史记录', icon: 'none' })
+      return
+    }
+    if (!newPhotoUrl) {
+      Taro.showToast({ title: '请先选择新照片', icon: 'none' })
+      return
+    }
+    setShowComparison(true)
+  }
+
+  const selectedInjection = injectionRecords.find(i => i.id === selectedHistoryId)
+  const comparisonPoints = useMemo(() => {
+    if (!selectedInjection) return []
+    const configPoints = FACIAL_POINTS_CONFIG[selectedInjection.projectType] || []
+    return selectedInjection.points.map(pt => {
+      const config = configPoints.find(cp => cp.id === pt.pointId)
+      return {
+        ...pt,
+        x: config?.x ?? 50,
+        y: config?.y ?? 50
+      }
+    })
+  }, [selectedInjection])
 
   const getIconClass = (type: string) => {
     const classMap: Record<string, string> = {
@@ -190,29 +234,49 @@ const FollowupPage: React.FC = () => {
           </View>
 
           <View className={styles.comparisonSection}>
-            <Text className={styles.comparisonTitle}>复诊对比示例</Text>
-            <View className={styles.photoCompare}>
-              <View className={styles.photoItem}>
-                <Image
-                  className={styles.photoImage}
-                  src='https://picsum.photos/id/64/300/400'
-                  mode='aspectFill'
-                />
-                <View className={styles.photoLabel}>术前</View>
-              </View>
-              <View className={styles.photoItem}>
-                <Image
-                  className={styles.photoImage}
-                  src='https://picsum.photos/id/91/300/400'
-                  mode='aspectFill'
-                />
-                <View className={styles.photoLabel}>术后</View>
-                <View className={styles.overlayHint}>点位叠加对比</View>
+            <Text className={styles.comparisonTitle}>复诊对比</Text>
+
+            <View className={styles.comparisonSelectRow}>
+              <Text className={styles.comparisonLabel}>选择历史记录</Text>
+              <View className={styles.comparisonPicker}>
+                {injectionRecords.length === 0 ? (
+                  <Text className={styles.comparisonPlaceholder}>暂无注射记录</Text>
+                ) : (
+                  <picker
+                    mode='selector'
+                    range={injectionRecords.map(r => `${r.customerName} - ${getProjectTypeText(r.projectType)}`)}
+                    onChange={(e) => setSelectedHistoryId(injectionRecords[e.detail.value]?.id || '')}
+                  >
+                    <Text className={styles.comparisonPickerText}>
+                      {selectedHistoryId
+                        ? (() => {
+                            const sel = injectionRecords.find(r => r.id === selectedHistoryId)
+                            return sel ? `${sel.customerName} - ${getProjectTypeText(sel.projectType)}` : '请选择'
+                          })()
+                        : '请选择'}
+                    </Text>
+                  </picker>
+                )}
               </View>
             </View>
-            <Text style={{ fontSize: '24rpx', color: '#86909C', textAlign: 'center' }}>
-              复诊时可将上次点位半透明叠加到新照片上，便于判断吸收和补量位置
-            </Text>
+
+            <View className={styles.comparisonSelectRow}>
+              <Text className={styles.comparisonLabel}>选择新照片</Text>
+              <Button
+                className={classnames(styles.actionBtn, styles.btnSecondary)}
+                onClick={handleChooseNewPhoto}
+              >
+                {newPhotoUrl ? '已选择照片' : '选择照片'}
+              </Button>
+            </View>
+
+            <Button
+              className={classnames(styles.actionBtn, styles.btnPrimary)}
+              onClick={handleStartComparison}
+              style={{ marginTop: '24rpx', width: '100%' }}
+            >
+              开始对比
+            </Button>
           </View>
         </>
       )}
@@ -293,6 +357,48 @@ const FollowupPage: React.FC = () => {
               )
             })
           )}
+        </View>
+      )}
+
+      {showComparison && newPhotoUrl && selectedInjection && (
+        <View className={styles.comparisonModal} onClick={() => setShowComparison(false)}>
+          <View className={styles.comparisonContent} onClick={(e) => e.stopPropagation()}>
+            <Text className={styles.modalTitle}>点位叠加对比</Text>
+            <Text style={{ fontSize: '24rpx', color: '#86909C', textAlign: 'center', marginBottom: '24rpx' }}>
+              历史点位半透明叠加到新照片上
+            </Text>
+
+            <View className={styles.comparisonPhotoContainer}>
+              <Image
+                className={styles.comparisonPhoto}
+                src={newPhotoUrl}
+                mode='aspectFill'
+              />
+              {comparisonPoints.map((pt, idx) => (
+                <View
+                  key={idx}
+                  className={styles.comparisonPoint}
+                  style={{
+                    left: `${pt.x}%`,
+                    top: `${pt.y}%`,
+                    backgroundColor: pt.color,
+                    opacity: 0.5
+                  }}
+                >
+                  <Text className={styles.comparisonPointLabel}>{pt.pointName}</Text>
+                </View>
+              ))}
+            </View>
+
+            <View className={styles.modalActions}>
+              <Button
+                className={classnames(styles.modalBtn, styles.btnPrimary)}
+                onClick={() => setShowComparison(false)}
+              >
+                关闭
+              </Button>
+            </View>
+          </View>
         </View>
       )}
     </ScrollView>

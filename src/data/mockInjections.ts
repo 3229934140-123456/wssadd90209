@@ -57,10 +57,13 @@ export const mockInjectionRecords: InjectionRecord[] = [
         batchNumber: 'B202601001',
         expiryDate: '2027-01-15',
         specification: '100U/瓶',
-        totalQuantity: 100,
-        usedQuantity: 50,
-        remainingQuantity: 50,
-        scanTime: '2026-06-15T09:05:00Z'
+        totalDose: 100,
+        usedDose: 50,
+        remainingDose: 50,
+        unit: 'U',
+        scanTime: '2026-06-15T09:05:00Z',
+        verified: true,
+        verifiedAt: '2026-06-15T09:05:30Z'
       }
     ],
     photos: [
@@ -133,10 +136,13 @@ export const mockInjectionRecords: InjectionRecord[] = [
         batchNumber: 'H202602015',
         expiryDate: '2028-02-20',
         specification: '1ml/支',
-        totalQuantity: 2,
-        usedQuantity: 2,
-        remainingQuantity: 0,
-        scanTime: '2026-06-10T10:15:00Z'
+        totalDose: 2,
+        usedDose: 2,
+        remainingDose: 0,
+        unit: 'ml',
+        scanTime: '2026-06-10T10:15:00Z',
+        verified: true,
+        verifiedAt: '2026-06-10T10:15:30Z'
       }
     ],
     photos: [
@@ -186,10 +192,13 @@ export const mockInjectionRecords: InjectionRecord[] = [
         batchNumber: 'B202603008',
         expiryDate: '2027-03-10',
         specification: '100U/瓶',
-        totalQuantity: 100,
-        usedQuantity: 20,
-        remainingQuantity: 80,
-        scanTime: '2026-05-28T14:20:00Z'
+        totalDose: 100,
+        usedDose: 20,
+        remainingDose: 80,
+        unit: 'U',
+        scanTime: '2026-05-28T14:20:00Z',
+        verified: true,
+        verifiedAt: '2026-05-28T14:20:30Z'
       }
     ],
     photos: [],
@@ -229,6 +238,9 @@ export const mockExportRecords: ExportRecord[] = [
     customerId: 'cust_001',
     customerName: '张女士',
     injectionRecordId: 'inj_20260615_001',
+    projectType: 'botox',
+    projectName: '肉毒除皱',
+    injectionDate: '2026-06-15T09:00:00Z',
     exportTime: '2026-06-15T10:00:00Z',
     exportType: 'pdf',
     status: 'success'
@@ -238,6 +250,9 @@ export const mockExportRecords: ExportRecord[] = [
     customerId: 'cust_002',
     customerName: '李女士',
     injectionRecordId: 'inj_20260610_001',
+    projectType: 'hyaluronic',
+    projectName: '玻尿酸填充',
+    injectionDate: '2026-06-10T10:00:00Z',
     exportTime: '2026-06-10T11:00:00Z',
     exportType: 'pdf',
     status: 'success'

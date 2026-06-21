@@ -389,3 +389,73 @@
     opacity: 0.9;
   }
 }
+
+.previewModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.previewContent {
+  width: 90%;
+  background: $color-bg-card;
+  border-radius: $radius-xl;
+  padding: $spacing-xl;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.previewSection {
+  margin-bottom: $spacing-lg;
+  padding-bottom: $spacing-md;
+  border-bottom: 1rpx solid $color-divider;
+
+  &:last-of-type {
+    border-bottom: none;
+  }
+}
+
+.previewLabel {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-sm;
+}
+
+.previewValue {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  line-height: $line-height-normal;
+}
+
+.previewPoint {
+  padding: $spacing-sm;
+  background: $color-bg-gray;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-sm;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+}
+
+.previewMedicine {
+  padding: $spacing-sm;
+  background: $color-bg-gray;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-sm;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+}
+
+.previewPhoto {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: $radius-md;
+  background: $color-bg-gray;
+}
