@@ -229,7 +229,8 @@ export const mockFollowupRecords: FollowupRecord[] = [
       }
     ],
     notes: '客户反馈效果良好，额纹基本平复，鱼尾纹略有残留，建议3个月后补量',
-    nextFollowupDate: '2026-09-22'
+    nextFollowupDate: '2026-09-22',
+    savedComparisons: []
   },
   {
     id: 'foll_002',
@@ -246,7 +247,8 @@ export const mockFollowupRecords: FollowupRecord[] = [
       }
     ],
     notes: '苹果肌填充效果自然，左侧略有吸收，建议1个月后复诊评估是否补量',
-    nextFollowupDate: '2026-07-20'
+    nextFollowupDate: '2026-07-20',
+    savedComparisons: []
   },
   {
     id: 'foll_003',
@@ -263,7 +265,8 @@ export const mockFollowupRecords: FollowupRecord[] = [
       }
     ],
     notes: '额纹改善明显，客户满意，暂无补量需求，建议半年后再次治疗',
-    nextFollowupDate: '2026-12-18'
+    nextFollowupDate: '2026-12-18',
+    savedComparisons: []
   }
 ]
 
@@ -278,7 +281,8 @@ export const mockExportRecords: ExportRecord[] = [
     injectionDate: '2026-06-15T09:00:00Z',
     exportTime: '2026-06-15T10:00:00Z',
     exportType: 'pdf',
-    status: 'success'
+    status: 'success',
+    exportScope: 'full'
   },
   {
     id: 'exp_002',
@@ -290,6 +294,7 @@ export const mockExportRecords: ExportRecord[] = [
     injectionDate: '2026-06-10T10:00:00Z',
     exportTime: '2026-06-10T11:00:00Z',
     exportType: 'pdf',
-    status: 'success'
+    status: 'success',
+    exportScope: 'points_only'
   }
 ]

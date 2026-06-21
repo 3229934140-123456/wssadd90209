@@ -15,7 +15,7 @@ const PhotoAnnotatePage: React.FC = () => {
   const photoUrl = decodeURIComponent(router.params.photoUrl || '')
   const photoType = router.params.photoType as string
 
-  const { currentInjection, addPhoto } = useAppStore()
+  const { currentInjection, addPhoto, syncCurrentToRecords } = useAppStore()
 
   const existingPhoto = currentInjection?.photos?.find(p => p.id === photoId)
   const [markers, setMarkers] = useState<PhotoMarker[]>(existingPhoto?.markers || [])
@@ -84,6 +84,7 @@ const PhotoAnnotatePage: React.FC = () => {
       addPhoto(newPhoto)
     }
 
+    syncCurrentToRecords()
     Taro.showToast({ title: '标注已保存', icon: 'success' })
     setTimeout(() => {
       Taro.navigateBack()

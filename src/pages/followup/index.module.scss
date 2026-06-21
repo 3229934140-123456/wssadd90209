@@ -529,3 +529,82 @@
   padding: 2rpx 8rpx;
   border-radius: $radius-xs;
 }
+
+.savedComparisonRow {
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1rpx solid $color-divider;
+}
+
+.savedComparisonLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-sm;
+  display: block;
+}
+
+.savedComparisonThumbs {
+  display: flex;
+  gap: $spacing-sm;
+  flex-wrap: wrap;
+}
+
+.savedComparisonThumb {
+  @include button-reset;
+  width: 120rpx;
+  height: 160rpx;
+  border-radius: $radius-sm;
+  overflow: hidden;
+  position: relative;
+}
+
+.savedThumbImage {
+  width: 100%;
+  height: 100%;
+}
+
+.savedThumbCount {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 20rpx;
+  padding: 4rpx 8rpx;
+  text-align: center;
+}
+
+.modalBtnSecondary {
+  @include button-reset;
+  flex: 1;
+  height: $button-height-md;
+  border-radius: $radius-button;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  background: $color-bg-gray;
+  color: $color-text-secondary;
+}
+
+.savedInfo {
+  padding: $spacing-md;
+  background: $color-bg-gray;
+  border-radius: $radius-md;
+  margin-top: $spacing-md;
+}
+
+.savedInfoRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 6rpx 0;
+  font-size: $font-size-sm;
+}
+
+.savedInfoLabel {
+  color: $color-text-secondary;
+}
+
+.savedInfoValue {
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+}

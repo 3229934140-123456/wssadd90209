@@ -459,3 +459,63 @@
   border-radius: $radius-md;
   background: $color-bg-gray;
 }
+
+.scopeSelector {
+  display: flex;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-lg;
+  padding: $spacing-sm;
+  background: $color-bg-gray;
+  border-radius: $radius-md;
+}
+
+.scopeOption {
+  @include button-reset;
+  flex: 1;
+  padding: $spacing-sm;
+  border-radius: $radius-sm;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  text-align: center;
+  transition: all $transition-fast;
+}
+
+.scopeOptionActive {
+  background: $color-primary;
+  color: $color-text-white;
+}
+
+.scopeOptionLabel {
+  display: block;
+  font-weight: $font-weight-semibold;
+  margin-bottom: 4rpx;
+}
+
+.scopeOptionDesc {
+  display: block;
+  font-size: 20rpx;
+  opacity: 0.85;
+}
+
+.scopeBadge {
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: $radius-xs;
+  margin-top: 8rpx;
+  display: inline-block;
+}
+
+.scopeFull {
+  background: rgba(24, 144, 255, 0.1);
+  color: $color-primary;
+}
+
+.scopePoints {
+  background: rgba(114, 46, 209, 0.1);
+  color: #722ED1;
+}
+
+.scopeMedicine {
+  background: rgba(82, 196, 26, 0.1);
+  color: $color-success;
+}

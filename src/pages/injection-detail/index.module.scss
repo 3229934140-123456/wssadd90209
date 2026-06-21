@@ -395,3 +395,78 @@
   height: 16rpx;
   border-radius: $radius-round;
 }
+
+.viewTabs {
+  display: flex;
+  margin: -20rpx $page-padding 0;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-xs;
+  box-shadow: $shadow-card;
+}
+.tabItem {
+  @include button-reset;
+  flex: 1;
+  height: 64rpx;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  font-weight: $font-weight-medium;
+}
+.tabActive {
+  background: $color-primary;
+  color: $color-text-white;
+}
+.timeline {
+  padding: $spacing-lg $page-padding;
+}
+.timelineNode {
+  position: relative;
+  padding-left: 60rpx;
+  padding-bottom: $spacing-xl;
+  &:last-child { padding-bottom: 0; }
+}
+.timelineIcon {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  background: $color-primary-bg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  z-index: 2;
+}
+.timelineLine {
+  position: absolute;
+  left: 21rpx;
+  top: 44rpx;
+  bottom: 0;
+  width: 2rpx;
+  background: $color-divider;
+}
+.timelineContent {
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-md;
+  box-shadow: $shadow-card;
+}
+.timelineTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-bottom: $spacing-xs;
+}
+.timelineTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-sm;
+}
+.timelineDetail {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: 1.8;
+}

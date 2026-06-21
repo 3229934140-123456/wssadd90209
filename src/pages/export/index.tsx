@@ -47,6 +47,12 @@ const EXPORT_ACTIONS: ExportAction[] = [
   }
 ]
 
+const EXPORT_SCOPES = [
+  { value: 'points_only', label: '仅点位图', desc: '面部点位图 + 点位详情' },
+  { value: 'medicine_signature', label: '药品与签名', desc: '药品明细 + 医生签名' },
+  { value: 'full', label: '完整病历', desc: '全部信息（点位+药品+照片+签名+备注）' }
+]
+
 const FILTERS = [
   { value: 'all', label: '全部' },
   { value: 'pdf', label: 'PDF病历' },
@@ -62,6 +68,8 @@ const ExportPage: React.FC = () => {
   const [singleExportType, setSingleExportType] = useState<'pdf' | 'image'>('pdf')
   const [showPreviewModal, setShowPreviewModal] = useState(false)
   const [previewRecord, setPreviewRecord] = useState<InjectionRecord | null>(null)
+  const [exportScope, setExportScope] = useState<'points_only' | 'medicine_signature' | 'full'>('full')
+  const [previewScope, setPreviewScope] = useState<'points_only' | 'medicine_signature' | 'full'>('full')
   const {
     setExportRecords, setInjectionRecords, exportRecords, injectionRecords, addExportRecord
   } = useAppStore()
@@ -127,6 +135,7 @@ const ExportPage: React.FC = () => {
       return
     }
     setPreviewRecord(inj)
+    setPreviewScope(record.exportScope || 'full')
     setShowPreviewModal(true)
   }
 
@@ -158,7 +167,8 @@ const ExportPage: React.FC = () => {
       injectionDate: inj.createTime,
       exportTime: new Date().toISOString(),
       exportType: singleExportType,
-      status: 'success'
+      status: 'success',
+      exportScope
     }
     addExportRecord(newRecord)
     setShowSingleSelectModal(false)
@@ -184,7 +194,8 @@ const ExportPage: React.FC = () => {
           injectionDate: inj.createTime,
           exportTime: new Date().toISOString(),
           exportType: 'pdf',
-          status: 'success'
+          status: 'success',
+          exportScope
         }
         addExportRecord(newRecord)
       }
@@ -224,6 +235,44 @@ const ExportPage: React.FC = () => {
   const getSideText = (side: string) => {
     const map: Record<string, string> = { left: '左', right: '右', bilateral: '双侧', center: '中央' }
     return map[side] || side
+  }
+
+  const getScopeBadgeClass = (scope: string) => {
+    const classMap: Record<string, string> = {
+      full: styles.scopeFull,
+      points_only: styles.scopePoints,
+      medicine_signature: styles.scopeMedicine
+    }
+    return classMap[scope] || ''
+  }
+
+  const getScopeText = (scope: string) => {
+    const textMap: Record<string, string> = {
+      full: '完整病历',
+      points_only: '仅点位图',
+      medicine_signature: '药品与签名'
+    }
+    return textMap[scope] || scope
+  }
+
+  const handleExportPreviewScope = () => {
+    if (!previewRecord) return
+    const newRecord: ExportRecord = {
+      id: `exp_${Date.now()}`,
+      customerId: previewRecord.customerId,
+      customerName: previewRecord.customerName,
+      injectionRecordId: previewRecord.id,
+      projectType: previewRecord.projectType,
+      projectName: previewRecord.projectName,
+      injectionDate: previewRecord.createTime,
+      exportTime: new Date().toISOString(),
+      exportType: 'pdf',
+      status: 'success',
+      exportScope: previewScope
+    }
+    addExportRecord(newRecord)
+    setShowPreviewModal(false)
+    Taro.showToast({ title: `${previewRecord.customerName}的记录导出成功`, icon: 'success' })
   }
 
   return (
@@ -291,6 +340,9 @@ const ExportPage: React.FC = () => {
                     <Text className={styles.recordDetail}>
                       {getProjectTypeText(record.projectType)} · {formatDate(record.injectionDate)}
                     </Text>
+                    <View className={classnames(styles.scopeBadge, getScopeBadgeClass(record.exportScope))}>
+                      {getScopeText(record.exportScope)}
+                    </View>
                   </View>
                 </View>
                 <View className={classnames(styles.exportType, getTypeClass(record.exportType))}>
@@ -330,6 +382,21 @@ const ExportPage: React.FC = () => {
           <View className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <Text className={styles.modalTitle}>选择要导出的注射记录</Text>
 
+            <View className={styles.scopeSelector}>
+              {EXPORT_SCOPES.map(scope => (
+                <Button
+                  key={scope.value}
+                  className={classnames(styles.scopeOption, {
+                    [styles.scopeOptionActive]: exportScope === scope.value
+                  })}
+                  onClick={() => setExportScope(scope.value as 'points_only' | 'medicine_signature' | 'full')}
+                >
+                  <Text className={styles.scopeOptionLabel}>{scope.label}</Text>
+                  <Text className={styles.scopeOptionDesc}>{scope.desc}</Text>
+                </Button>
+              ))}
+            </View>
+
             {injectionRecords.map(record => (
               <View
                 key={record.id}
@@ -361,6 +428,21 @@ const ExportPage: React.FC = () => {
         <View className={styles.selectModal} onClick={() => setShowSelectModal(false)}>
           <View className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <Text className={styles.modalTitle}>选择要导出的记录</Text>
+
+            <View className={styles.scopeSelector}>
+              {EXPORT_SCOPES.map(scope => (
+                <Button
+                  key={scope.value}
+                  className={classnames(styles.scopeOption, {
+                    [styles.scopeOptionActive]: exportScope === scope.value
+                  })}
+                  onClick={() => setExportScope(scope.value as 'points_only' | 'medicine_signature' | 'full')}
+                >
+                  <Text className={styles.scopeOptionLabel}>{scope.label}</Text>
+                  <Text className={styles.scopeOptionDesc}>{scope.desc}</Text>
+                </Button>
+              ))}
+            </View>
 
             <View className={styles.selectItem}>
               <View
@@ -419,6 +501,21 @@ const ExportPage: React.FC = () => {
           <View className={styles.previewContent} onClick={(e) => e.stopPropagation()}>
             <Text className={styles.modalTitle}>预览 - {previewRecord.customerName}</Text>
 
+            <View className={styles.scopeSelector}>
+              {EXPORT_SCOPES.map(scope => (
+                <Button
+                  key={scope.value}
+                  className={classnames(styles.scopeOption, {
+                    [styles.scopeOptionActive]: previewScope === scope.value
+                  })}
+                  onClick={() => setPreviewScope(scope.value as 'points_only' | 'medicine_signature' | 'full')}
+                >
+                  <Text className={styles.scopeOptionLabel}>{scope.label}</Text>
+                  <Text className={styles.scopeOptionDesc}>{scope.desc}</Text>
+                </Button>
+              ))}
+            </View>
+
             <View className={styles.previewSection}>
               <Text className={styles.previewLabel}>项目类型</Text>
               <Text className={styles.previewValue}>{getProjectTypeText(previewRecord.projectType)} - {previewRecord.projectName}</Text>
@@ -429,33 +526,37 @@ const ExportPage: React.FC = () => {
               <Text className={styles.previewValue}>{formatDate(previewRecord.createTime)}</Text>
             </View>
 
-            <View className={styles.previewSection}>
-              <Text className={styles.previewLabel}>点位列表</Text>
-              {previewRecord.points.length === 0 ? (
-                <Text className={styles.previewValue}>暂无点位</Text>
-              ) : (
-                previewRecord.points.map((pt, idx) => (
-                  <View key={idx} className={styles.previewPoint}>
-                    <Text>{pt.pointName} · {getSideText(pt.side)} · {getDepthText(pt.depth)} · {pt.totalDose}{pt.singleDose > 0 ? ` (单点${pt.singleDose})` : ''}</Text>
-                  </View>
-                ))
-              )}
-            </View>
+            {(previewScope === 'points_only' || previewScope === 'full') && (
+              <View className={styles.previewSection}>
+                <Text className={styles.previewLabel}>点位列表</Text>
+                {previewRecord.points.length === 0 ? (
+                  <Text className={styles.previewValue}>暂无点位</Text>
+                ) : (
+                  previewRecord.points.map((pt, idx) => (
+                    <View key={idx} className={styles.previewPoint}>
+                      <Text>{pt.pointName} · {getSideText(pt.side)} · {getDepthText(pt.depth)} · {pt.totalDose}{pt.singleDose > 0 ? ` (单点${pt.singleDose})` : ''}</Text>
+                    </View>
+                  ))
+                )}
+              </View>
+            )}
 
-            <View className={styles.previewSection}>
-              <Text className={styles.previewLabel}>药品列表</Text>
-              {previewRecord.medicines.length === 0 ? (
-                <Text className={styles.previewValue}>暂无药品</Text>
-              ) : (
-                previewRecord.medicines.map((med) => (
-                  <View key={med.id} className={styles.previewMedicine}>
-                    <Text>{med.name} · 批号{med.batchNumber} · 用量{med.usedDose}{med.unit} · 剩余{med.remainingDose}{med.unit}</Text>
-                  </View>
-                ))
-              )}
-            </View>
+            {(previewScope === 'medicine_signature' || previewScope === 'full') && (
+              <View className={styles.previewSection}>
+                <Text className={styles.previewLabel}>药品列表</Text>
+                {previewRecord.medicines.length === 0 ? (
+                  <Text className={styles.previewValue}>暂无药品</Text>
+                ) : (
+                  previewRecord.medicines.map((med) => (
+                    <View key={med.id} className={styles.previewMedicine}>
+                      <Text>{med.name} · 批号{med.batchNumber} · 用量{med.usedDose}{med.unit} · 剩余{med.remainingDose}{med.unit}</Text>
+                    </View>
+                  ))
+                )}
+              </View>
+            )}
 
-            {previewRecord.photos.length > 0 && (
+            {previewScope === 'full' && previewRecord.photos.length > 0 && (
               <View className={styles.previewSection}>
                 <Text className={styles.previewLabel}>照片</Text>
                 <View style={{ display: 'flex', flexWrap: 'wrap', gap: '16rpx' }}>
@@ -471,14 +572,14 @@ const ExportPage: React.FC = () => {
               </View>
             )}
 
-            {previewRecord.doctorSignature && (
+            {(previewScope === 'medicine_signature' || previewScope === 'full') && previewRecord.doctorSignature && (
               <View className={styles.previewSection}>
                 <Text className={styles.previewLabel}>签名</Text>
                 <Text className={styles.previewValue}>{previewRecord.doctorName} · {previewRecord.signatureTime ? formatDateTime(previewRecord.signatureTime) : ''}</Text>
               </View>
             )}
 
-            {previewRecord.abnormalNotes && (
+            {(previewScope === 'medicine_signature' || previewScope === 'full') && previewRecord.abnormalNotes && (
               <View className={styles.previewSection}>
                 <Text className={styles.previewLabel}>异常备注</Text>
                 <Text className={styles.previewValue}>{previewRecord.abnormalNotes}</Text>
@@ -487,10 +588,16 @@ const ExportPage: React.FC = () => {
 
             <View className={styles.modalActions}>
               <Button
-                className={classnames(styles.modalBtn, styles.btnPrimary)}
+                className={classnames(styles.modalBtn, styles.btnSecondary)}
                 onClick={() => setShowPreviewModal(false)}
               >
                 关闭
+              </Button>
+              <Button
+                className={classnames(styles.modalBtn, styles.btnPrimary)}
+                onClick={handleExportPreviewScope}
+              >
+                导出此范围
               </Button>
             </View>
           </View>

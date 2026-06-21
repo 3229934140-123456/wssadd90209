@@ -4,6 +4,7 @@ import Taro, { useRouter, useDidShow } from '@tarojs/taro'
 import styles from './index.module.scss'
 import { useAppStore } from '@/store/useAppStore'
 import { mockCustomers } from '@/data/mockCustomers'
+import { mockInjectionRecords } from '@/data/mockInjections'
 import { formatDate, getProjectTypeText } from '@/utils/date'
 
 const CustomerDetailPage: React.FC = () => {
@@ -14,7 +15,8 @@ const CustomerDetailPage: React.FC = () => {
     setCustomers,
     currentCustomer,
     setCurrentCustomer,
-    injectionRecords
+    injectionRecords,
+    setInjectionRecords
   } = useAppStore()
 
   const [customer, setCustomer] = useState<any>(null)
@@ -23,7 +25,8 @@ const CustomerDetailPage: React.FC = () => {
   useEffect(() => {
     console.log('[CustomerDetail] Initializing with mock data')
     setCustomers(mockCustomers)
-  }, [setCustomers])
+    setInjectionRecords(mockInjectionRecords)
+  }, [setCustomers, setInjectionRecords])
 
   useDidShow(() => {
     console.log('[CustomerDetail] Page did show, customerId:', customerId)
@@ -31,7 +34,8 @@ const CustomerDetailPage: React.FC = () => {
       const found = customers.find(c => c.id === customerId) || mockCustomers[0]
       setCustomer(found)
       setCurrentCustomer(found)
-      const history = injectionRecords.filter(r => r.customerId === customerId)
+      const allRecords = injectionRecords.length > 0 ? injectionRecords : mockInjectionRecords
+      const history = allRecords.filter(r => r.customerId === found.id || (found && r.customerId === found.id))
       setCustomerHistory(history)
     } else {
       setCustomer(mockCustomers[0])

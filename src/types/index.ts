@@ -115,6 +115,14 @@ export interface FollowupRecord {
   }[]
   notes: string
   nextFollowupDate: string
+  savedComparisons: {
+    id: string
+    historyInjectionId: string
+    historyProjectName: string
+    newPhotoUrl: string
+    savedTime: string
+    pointCount: number
+  }[]
 }
 
 export interface ExportRecord {
@@ -128,6 +136,7 @@ export interface ExportRecord {
   exportTime: string
   exportType: 'pdf' | 'image'
   status: 'pending' | 'success' | 'failed'
+  exportScope: 'points_only' | 'medicine_signature' | 'full'
 }
 
 export interface ReceptionItem {

@@ -46,6 +46,7 @@ interface AppState {
   setFollowupRecords: (records: FollowupRecord[]) => void
   setExportRecords: (records: ExportRecord[]) => void
   addExportRecord: (record: ExportRecord) => void
+  syncCurrentToRecords: () => void
   clearCurrent: () => void
 }
 
@@ -298,6 +299,17 @@ export const useAppStore = create<AppState>((set, get) => ({
     const { exportRecords } = get()
     set({ exportRecords: [record, ...exportRecords] })
     console.log('[Store] Added export record:', record.id)
+  },
+
+  syncCurrentToRecords: () => {
+    const { currentInjection, injectionRecords } = get()
+    if (!currentInjection) return
+    const idx = injectionRecords.findIndex(r => r.id === currentInjection.id)
+    const updated = idx >= 0
+      ? injectionRecords.map(r => r.id === currentInjection.id ? { ...currentInjection } : r)
+      : [{ ...currentInjection }, ...injectionRecords]
+    console.log('[Store] Synced current to records:', currentInjection.id, idx >= 0 ? 'updated' : 'added')
+    set({ injectionRecords: updated })
   },
 
   clearCurrent: () => set({

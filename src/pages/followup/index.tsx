@@ -22,6 +22,10 @@ const FollowupPage: React.FC = () => {
   const [selectedHistoryId, setSelectedHistoryId] = useState('')
   const [showComparison, setShowComparison] = useState(false)
   const [newPhotoUrl, setNewPhotoUrl] = useState('')
+  const [activeComparisonRecordId, setActiveComparisonRecordId] = useState('')
+  const [showSavedComparison, setShowSavedComparison] = useState(false)
+  const [selectedSavedComparison, setSelectedSavedComparison] = useState<any>(null)
+  const [currentFollowupRecordId, setCurrentFollowupRecordId] = useState('')
   const {
     currentInjection,
     setInjectionRecords,
@@ -89,6 +93,8 @@ const FollowupPage: React.FC = () => {
       return
     }
     setSelectedHistoryId(inj.id)
+    setCurrentFollowupRecordId(record.id)
+    setActiveComparisonRecordId(record.id)
 
     const newPhoto = record.comparisonPhotos?.[0]?.newPhotoUrl
     if (newPhoto) {
@@ -137,7 +143,48 @@ const FollowupPage: React.FC = () => {
       Taro.showToast({ title: '请先选择新照片', icon: 'none' })
       return
     }
+    setCurrentFollowupRecordId('')
     setShowComparison(true)
+  }
+
+  const handleSaveComparison = () => {
+    if (!newPhotoUrl || !selectedHistoryId) {
+      Taro.showToast({ title: '缺少必要参数', icon: 'none' })
+      return
+    }
+    let targetRecordId = currentFollowupRecordId
+    if (!targetRecordId && followupRecords.length > 0) {
+      targetRecordId = followupRecords[0].id
+    }
+    if (!targetRecordId) {
+      Taro.showToast({ title: '请先选择复诊记录', icon: 'none' })
+      return
+    }
+    const comp = {
+      id: `cmp_${Date.now()}`,
+      historyInjectionId: selectedHistoryId,
+      historyProjectName: selectedInjection?.projectName || '',
+      newPhotoUrl,
+      savedTime: new Date().toISOString(),
+      pointCount: comparisonPoints.length
+    }
+    const updatedRecords = followupRecords.map(r => {
+      if (r.id === targetRecordId) {
+        return {
+          ...r,
+          savedComparisons: [...(r.savedComparisons || []), comp]
+        }
+      }
+      return r
+    })
+    setFollowupRecords(updatedRecords)
+    Taro.showToast({ title: '对比图已保存', icon: 'success' })
+  }
+
+  const handleOpenSavedComparison = (record: any, savedComp: any) => {
+    setActiveComparisonRecordId(record.id)
+    setSelectedSavedComparison(savedComp)
+    setShowSavedComparison(true)
   }
 
   const selectedInjection = injectionRecords.find(i => i.id === selectedHistoryId)
@@ -358,6 +405,32 @@ const FollowupPage: React.FC = () => {
                       </Text>
                     </View>
 
+                    {record.savedComparisons && record.savedComparisons.length > 0 && (
+                      <View className={styles.savedComparisonRow}>
+                        <Text className={styles.savedComparisonLabel}>
+                          已保存对比（{record.savedComparisons.length}张）
+                        </Text>
+                        <View className={styles.savedComparisonThumbs}>
+                          {record.savedComparisons.map((comp: any) => (
+                            <Button
+                              key={comp.id}
+                              className={styles.savedComparisonThumb}
+                              onClick={() => handleOpenSavedComparison(record, comp)}
+                            >
+                              <Image
+                                className={styles.savedThumbImage}
+                                src={comp.newPhotoUrl}
+                                mode='aspectFill'
+                              />
+                              <View className={styles.savedThumbCount}>
+                                {comp.pointCount}点位
+                              </View>
+                            </Button>
+                          ))}
+                        </View>
+                      </View>
+                    )}
+
                     <View className={styles.actionRow}>
                       <Button
                         className={classnames(styles.actionBtn, styles.btnSecondary)}
@@ -412,6 +485,12 @@ const FollowupPage: React.FC = () => {
 
             <View className={styles.modalActions}>
               <Button
+                className={classnames(styles.modalBtn, styles.modalBtnSecondary)}
+                onClick={handleSaveComparison}
+              >
+                保存对比图
+              </Button>
+              <Button
                 className={classnames(styles.modalBtn, styles.btnPrimary)}
                 onClick={() => setShowComparison(false)}
               >
@@ -421,6 +500,68 @@ const FollowupPage: React.FC = () => {
           </View>
         </View>
       )}
+
+      {showSavedComparison && selectedSavedComparison && (() => {
+        const savedInjection = injectionRecords.find(i => i.id === selectedSavedComparison.historyInjectionId)
+        const savedConfigPoints = savedInjection ? (FACIAL_POINTS_CONFIG[savedInjection.projectType] || []) : []
+        const savedPoints = savedInjection ? savedInjection.points.map(pt => {
+          const config = savedConfigPoints.find(cp => cp.id === pt.pointId)
+          return {
+            ...pt,
+            x: config?.x ?? 50,
+            y: config?.y ?? 50
+          }
+        }) : []
+        return (
+          <View className={styles.comparisonModal} onClick={() => setShowSavedComparison(false)}>
+            <View className={styles.comparisonContent} onClick={(e) => e.stopPropagation()}>
+              <Text className={styles.modalTitle}>已保存对比 - {selectedSavedComparison.historyProjectName}</Text>
+
+              <View className={styles.comparisonPhotoContainer}>
+                <Image
+                  className={styles.comparisonPhoto}
+                  src={selectedSavedComparison.newPhotoUrl}
+                  mode='aspectFill'
+                />
+                {savedPoints.map((pt, idx) => (
+                  <View
+                    key={idx}
+                    className={styles.comparisonPoint}
+                    style={{
+                      left: `${pt.x}%`,
+                      top: `${pt.y}%`,
+                      backgroundColor: pt.color,
+                      opacity: 0.5
+                    }}
+                  >
+                    <Text className={styles.comparisonPointLabel}>{pt.pointName}</Text>
+                  </View>
+                ))}
+              </View>
+
+              <View className={styles.savedInfo}>
+                <View className={styles.savedInfoRow}>
+                  <Text className={styles.savedInfoLabel}>保存时间</Text>
+                  <Text className={styles.savedInfoValue}>{formatDateTime(selectedSavedComparison.savedTime)}</Text>
+                </View>
+                <View className={styles.savedInfoRow}>
+                  <Text className={styles.savedInfoLabel}>点位数量</Text>
+                  <Text className={styles.savedInfoValue}>{selectedSavedComparison.pointCount} 个</Text>
+                </View>
+              </View>
+
+              <View className={styles.modalActions}>
+                <Button
+                  className={classnames(styles.modalBtn, styles.btnPrimary)}
+                  onClick={() => setShowSavedComparison(false)}
+                >
+                  关闭
+                </Button>
+              </View>
+            </View>
+          </View>
+        )
+      })()}
     </ScrollView>
   )
 }
